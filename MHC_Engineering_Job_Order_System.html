@@ -867,6 +867,86 @@ footer {
     padding: 16px !important;
   }
 }
+
+/* Authentication & PIN Modals */
+.auth-user-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #f8fafc;
+}
+.btn-logout {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-logout:hover {
+  background: rgba(239, 68, 68, 0.4);
+  color: #ffffff;
+}
+.pin-input-box {
+  display: flex;
+  justify-content: center;
+  margin: 18px 0;
+}
+.pin-input {
+  font-size: 28px !important;
+  letter-spacing: 12px;
+  text-align: center;
+  max-width: 220px;
+  font-weight: 800;
+  padding: 10px 16px !important;
+  border: 2px solid #3b82f6 !important;
+  border-radius: 10px !important;
+  background: #f8fafc !important;
+  color: #0f172a !important;
+}
+.auth-hint-box {
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 14px;
+}
+.dept-locked-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.dept-unlocked-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
 </style>
 </head>
 <body>
@@ -889,6 +969,12 @@ footer {
       <button class="btn-sync-head" id="btnManualSync" title="Sync now with cloud server">
         <i>🔄</i> Sync Now
       </button>
+      <div id="headerAuthContainer">
+        <div class="auth-user-badge" id="authUserBadge">
+          <span>🔓</span> <span id="authUserName">Open Staff Access</span>
+          <button class="btn-logout" id="btnLogout" style="display:none;" title="Log out session">Logout</button>
+        </div>
+      </div>
     </div>
   </div>
 </header>
@@ -1105,7 +1191,10 @@ footer {
           <option>Admin</option><option>Basic-RKD</option><option>Basic-Clean</option><option>Further</option><option>Blast</option><option>Warehouse</option><option>Quality</option><option>Utility</option><option>Canteen</option><option>SMFI</option><option>Others</option>
         </select>
       </div>
-      <div class="small" id="departmentHint" style="padding-bottom: 10px;">Select a department to view submitted job orders.</div>
+      <div style="padding-bottom: 10px;">
+        <div id="deptLockStatusIndicator" style="display:none; margin-bottom: 4px;"></div>
+        <div class="small" id="departmentHint">Select a department above and enter its assigned PIN to view submitted job orders.</div>
+      </div>
     </div>
 
     <div id="departmentSummary" class="stats" style="margin-top: 20px;" hidden>
@@ -1138,6 +1227,78 @@ footer {
     </div>
   </section>
 </main>
+
+
+<!-- Modal: Authentication Login Gate -->
+<div class="modal" id="loginModal">
+  <div class="modal-box" style="max-width: 440px;">
+    <div class="modal-head">
+      <h3 id="loginModalTitle">🔐 Restricted Dashboard Access</h3>
+      <button class="secondary sm" id="closeLoginModal">✕ Close</button>
+    </div>
+    <p class="sub" id="loginModalDesc">Please sign in with authorized credentials to access this dashboard.</p>
+    
+    <div id="loginAlert" style="display:none; padding:10px 12px; border-radius:8px; margin-bottom:14px; font-size:13px; font-weight:600;"></div>
+
+    <form id="loginForm">
+      <div style="margin-bottom: 14px;">
+        <label for="loginUsername">Authorized Username *</label>
+        <input id="loginUsername" required autocomplete="username" placeholder="Enter username">
+      </div>
+      <div style="margin-bottom: 16px;">
+        <label for="loginPassword">Password *</label>
+        <div style="position:relative;">
+          <input id="loginPassword" type="password" required autocomplete="current-password" placeholder="Enter password">
+        </div>
+      </div>
+      <div class="actions" style="margin-top: 10px;">
+        <button type="submit" class="success" style="width: 100%;">
+          <span>🔓</span> Verify & Login
+        </button>
+        <button type="button" class="secondary" id="btnCancelLogin" style="width: 100%;">
+          Cancel (Back to Request Form)
+        </button>
+      </div>
+    </form>
+    <div class="auth-hint-box">
+      <strong>Notice:</strong> The <em>Department Request Form</em> is open to all personnel without login. Only Engineering and Department Dashboards require secure authorization.
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Department Security PIN Verification -->
+<div class="modal" id="deptPinModal">
+  <div class="modal-box" style="max-width: 440px; text-align: center;">
+    <div class="modal-head">
+      <h3 style="width:100%; text-align:center;">🔑 Department Security PIN</h3>
+    </div>
+    <div style="font-size: 14px; color: #475569; margin-bottom: 8px;">
+      Enter the unique 4-digit Security PIN for:
+    </div>
+    <div id="deptPinTargetName" style="font-size: 20px; font-weight: 800; color: #1e3a8a; margin-bottom: 14px;">
+      [Department]
+    </div>
+
+    <div id="deptPinAlert" style="display:none; padding:8px 12px; border-radius:8px; margin-bottom:12px; font-size:12.5px; font-weight:700; background:#fee2e2; color:#991b1b; border:1px solid #fca5a5;"></div>
+
+    <form id="deptPinForm">
+      <div class="pin-input-box">
+        <input id="deptPinInput" class="pin-input" type="password" maxlength="4" pattern="[0-9]*" inputmode="numeric" placeholder="••••" required autofocus>
+      </div>
+      <div class="actions" style="justify-content: center; gap: 10px;">
+        <button type="submit" class="success">
+          <span>✓</span> Unlock Department Records
+        </button>
+        <button type="button" class="secondary" id="btnCancelDeptPin">
+          Cancel
+        </button>
+      </div>
+    </form>
+    <div class="auth-hint-box" style="text-align: left; margin-top: 18px;">
+      🔒 <strong>Access Control:</strong> Each plant department has an assigned 4-digit PIN. Only authorized personnel of this department may view its submitted requests.
+    </div>
+  </div>
+</div>
 
 <!-- Modal: Update Job Order (Engineering) -->
 <div class="modal" id="jobModal">
@@ -1371,6 +1532,98 @@ footer {
 </footer>
 
 <script>
+
+// =========================================================================
+// AUTHENTICATION & ACCESS CONTROL CREDENTIALS & SECURITY PINS
+// =========================================================================
+const AUTH_ACCOUNTS = {
+  // Engineering Dashboard (2 Accounts)
+  'engr.admin': { password: 'engr.admin2026!', role: 'engineering', name: 'Engr. Admin (Lead Supervisor)' },
+  'engr.tech': { password: 'engr.tech2026!', role: 'engineering', name: 'Engr. Technician (Maintenance)' },
+
+  // Department Dashboard (2 Accounts)
+  'dept.user1': { password: 'dept.user2026!', role: 'department', name: 'Dept. Coordinator (Monitor 1)' },
+  'dept.user2': { password: 'dept.lead2026!', role: 'department', name: 'Dept. Supervisor (Monitor 2)' }
+};
+
+// Unique 4-digit Security PINs per Department
+const DEPT_SECURITY_PINS = {
+  'Admin': '1001',
+  'Basic-RKD': '2001',
+  'Basic-Clean': '2002',
+  'Further': '3001',
+  'Blast': '4001',
+  'Warehouse': '5001',
+  'Quality': '6001',
+  'Utility': '7001',
+  'Canteen': '8001',
+  'SMFI': '9001',
+  'Others': '9999'
+};
+const MASTER_OVERRIDE_PIN = '8888'; // Plant Manager / Engineering Head Override
+
+// Session Auth State
+let currentSessionUser = null;
+let unlockedDepartments = new Set();
+let pendingTargetTab = null;
+let pendingDeptVerification = null;
+
+function loadSessionAuth() {
+  try {
+    const saved = sessionStorage.getItem('mhc_auth_user');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed && parsed.username && AUTH_ACCOUNTS[parsed.username]) {
+        currentSessionUser = { username: parsed.username, ...AUTH_ACCOUNTS[parsed.username] };
+      }
+    }
+    const savedPins = sessionStorage.getItem('mhc_unlocked_depts');
+    if (savedPins) {
+      const arr = JSON.parse(savedPins);
+      if (Array.isArray(arr)) unlockedDepartments = new Set(arr);
+    }
+  } catch(e) {}
+  updateHeaderAuthUI();
+}
+
+function saveSessionAuth() {
+  if (currentSessionUser) {
+    sessionStorage.setItem('mhc_auth_user', JSON.stringify({ username: currentSessionUser.username }));
+  } else {
+    sessionStorage.removeItem('mhc_auth_user');
+  }
+  sessionStorage.setItem('mhc_unlocked_depts', JSON.stringify(Array.from(unlockedDepartments)));
+  updateHeaderAuthUI();
+}
+
+function updateHeaderAuthUI() {
+  const badge = $('authUserBadge');
+  const nameEl = $('authUserName');
+  const logoutBtn = $('btnLogout');
+
+  if (currentSessionUser) {
+    nameEl.textContent = currentSessionUser.name;
+    badge.style.background = currentSessionUser.role === 'engineering' ? 'rgba(59, 130, 246, 0.25)' : 'rgba(16, 185, 129, 0.25)';
+    badge.style.borderColor = currentSessionUser.role === 'engineering' ? 'rgba(59, 130, 246, 0.5)' : 'rgba(16, 185, 129, 0.5)';
+    logoutBtn.style.display = 'inline-block';
+  } else {
+    nameEl.textContent = 'Open Staff Access';
+    badge.style.background = 'rgba(255, 255, 255, 0.12)';
+    badge.style.borderColor = 'rgba(255, 255, 255, 0.25)';
+    logoutBtn.style.display = 'none';
+  }
+}
+
+$('btnLogout').addEventListener('click', () => {
+  if (confirm('Log out of this monitoring session?')) {
+    currentSessionUser = null;
+    unlockedDepartments.clear();
+    saveSessionAuth();
+    switchTab('request');
+    toast('Logged out successfully.');
+  }
+});
+
 const STORAGE_KEY = 'mhc_job_orders_v1';
 const API_URL = '/api/data';
 const SYNC_URL = '/api/sync';
@@ -1541,17 +1794,108 @@ async function syncToCloud(showToast = false) {
   }
 }
 
-// Tabs switching
+// Safe Tab Switching Function
+function switchTab(tabName) {
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x.dataset.tab === tabName));
+  $('request').hidden = tabName !== 'request';
+  $('departmentDashboard').hidden = tabName !== 'departmentDashboard';
+  $('engineering').hidden = tabName !== 'engineering';
+
+  if (tabName === 'engineering') render();
+  if (tabName === 'departmentDashboard') renderDepartmentDashboard();
+}
+
+// Tab Click Interceptor with Role Verification
 document.querySelectorAll('.tab').forEach(b => {
   b.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x === b));
-    $('request').hidden = b.dataset.tab !== 'request';
-    $('departmentDashboard').hidden = b.dataset.tab !== 'departmentDashboard';
-    $('engineering').hidden = b.dataset.tab !== 'engineering';
-    if (b.dataset.tab === 'engineering') render();
-    if (b.dataset.tab === 'departmentDashboard') renderDepartmentDashboard();
+    const targetTab = b.dataset.tab;
+
+    // Tab 1: Request Form -> Open to all!
+    if (targetTab === 'request') {
+      switchTab('request');
+      return;
+    }
+
+    // Tab 2: Engineering Dashboard -> Requires Engineering Role
+    if (targetTab === 'engineering') {
+      if (currentSessionUser && currentSessionUser.role === 'engineering') {
+        switchTab('engineering');
+      } else {
+        openLoginModal('engineering', '🔐 Engineering Dashboard Login', 'Access to the Engineering Monitoring Board requires an authorized Engineering Account.');
+      }
+      return;
+    }
+
+    // Tab 3: Department Dashboard -> Requires Department or Engineering Role
+    if (targetTab === 'departmentDashboard') {
+      if (currentSessionUser && (currentSessionUser.role === 'department' || currentSessionUser.role === 'engineering')) {
+        switchTab('departmentDashboard');
+      } else {
+        openLoginModal('departmentDashboard', '🔐 Department Dashboard Login', 'Access to the Department Dashboard requires an authorized Department or Engineering Account.');
+      }
+      return;
+    }
   });
 });
+
+// Login Modal Handlers
+function openLoginModal(targetTab, title, desc) {
+  pendingTargetTab = targetTab;
+  $('loginModalTitle').textContent = title;
+  $('loginModalDesc').textContent = desc;
+  $('loginUsername').value = '';
+  $('loginPassword').value = '';
+  $('loginAlert').style.display = 'none';
+  $('loginModal').classList.add('show');
+  setTimeout(() => $('loginUsername').focus(), 150);
+}
+
+function closeLoginModal() {
+  $('loginModal').classList.remove('show');
+  pendingTargetTab = null;
+}
+$('closeLoginModal').addEventListener('click', closeLoginModal);
+$('btnCancelLogin').addEventListener('click', () => {
+  closeLoginModal();
+  switchTab('request');
+});
+
+$('loginForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const u = $('loginUsername').value.trim();
+  const p = $('loginPassword').value.trim();
+  const alertEl = $('loginAlert');
+
+  const acc = AUTH_ACCOUNTS[u];
+  if (!acc || acc.password !== p) {
+    alertEl.style.display = 'block';
+    alertEl.style.background = '#fee2e2';
+    alertEl.style.color = '#991b1b';
+    alertEl.style.border = '1px solid #fca5a5';
+    alertEl.textContent = '❌ Invalid username or password. Please verify your credentials.';
+    return;
+  }
+
+  // Check required role
+  if (pendingTargetTab === 'engineering' && acc.role !== 'engineering') {
+    alertEl.style.display = 'block';
+    alertEl.style.background = '#fef3c7';
+    alertEl.style.color = '#92400e';
+    alertEl.style.border = '1px solid #fde68a';
+    alertEl.textContent = '⚠️ This account has Department Viewer access only. Engineering credentials are required.';
+    return;
+  }
+
+  // Success
+  currentSessionUser = { username: u, ...acc };
+  saveSessionAuth();
+  closeLoginModal();
+  toast('Welcome, ' + acc.name + '!');
+  if (pendingTargetTab) {
+    switchTab(pendingTargetTab);
+  }
+});
+
 
 // Manual Sync Button
 $('btnManualSync').addEventListener('click', async () => {
@@ -1649,21 +1993,98 @@ function renderCharts() {
   $('deptCharts').innerHTML = pieCard('All Departments', jobs) + DEPTS.map(d => pieCard(d, jobs.filter(j => j.department === d))).join('');
 }
 
-// Department Dashboard Render
-$('departmentView').addEventListener('change', renderDepartmentDashboard);
+// Department Dashboard Render with PIN Gate
+$('departmentView').addEventListener('change', () => {
+  const dept = $('departmentView').value;
+  if (!dept) {
+    renderDepartmentDashboard();
+    return;
+  }
+
+  // Check if department is already unlocked in this session or user is Engineering Head/Admin
+  if (unlockedDepartments.has(dept) || (currentSessionUser && currentSessionUser.username === 'engr.admin')) {
+    renderDepartmentDashboard();
+  } else {
+    promptDepartmentPin(dept);
+  }
+});
+
+function promptDepartmentPin(dept) {
+  pendingDeptVerification = dept;
+  $('deptPinTargetName').textContent = dept + ' Department';
+  $('deptPinInput').value = '';
+  $('deptPinAlert').style.display = 'none';
+  $('deptPinModal').classList.add('show');
+  setTimeout(() => $('deptPinInput').focus(), 150);
+}
+
+function closeDeptPinModal(resetSelection = false) {
+  $('deptPinModal').classList.remove('show');
+  if (resetSelection && pendingDeptVerification && !unlockedDepartments.has(pendingDeptVerification)) {
+    $('departmentView').value = '';
+    renderDepartmentDashboard();
+  }
+  pendingDeptVerification = null;
+}
+
+$('btnCancelDeptPin').addEventListener('click', () => {
+  closeDeptPinModal(true);
+});
+
+$('deptPinForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const enteredPin = $('deptPinInput').value.trim();
+  const dept = pendingDeptVerification;
+  const expectedPin = DEPT_SECURITY_PINS[dept];
+  const alertEl = $('deptPinAlert');
+
+  if (enteredPin === expectedPin || enteredPin === MASTER_OVERRIDE_PIN) {
+    unlockedDepartments.add(dept);
+    saveSessionAuth();
+    closeDeptPinModal(false);
+    toast('✓ ' + dept + ' Department records unlocked!');
+    renderDepartmentDashboard();
+  } else {
+    alertEl.style.display = 'block';
+    alertEl.textContent = '❌ Incorrect PIN for ' + dept + '. Access Denied.';
+    $('deptPinInput').value = '';
+    $('deptPinInput').focus();
+  }
+});
 
 function renderDepartmentDashboard() {
   const dept = $('departmentView').value;
   const summary = $('departmentSummary');
+  const indicator = $('deptLockStatusIndicator');
+
   if (!dept) {
     summary.hidden = true;
     $('deptChart').hidden = true;
+    indicator.style.display = 'none';
     $('departmentHint').textContent = 'Please choose a department to view submitted job orders.';
     $('departmentJobsBody').innerHTML = '';
     $('departmentEmpty').textContent = 'Please select a department above to view its requests.';
     $('departmentEmpty').style.display = 'block';
     return;
   }
+
+  const isUnlocked = unlockedDepartments.has(dept) || (currentSessionUser && currentSessionUser.username === 'engr.admin');
+
+  if (!isUnlocked) {
+    summary.hidden = true;
+    $('deptChart').hidden = true;
+    indicator.style.display = 'block';
+    indicator.innerHTML = '<span class="dept-locked-badge">🔒 Locked • PIN Required</span>';
+    $('departmentHint').textContent = 'Enter the unique 4-digit PIN for ' + dept + ' to view records.';
+    $('departmentJobsBody').innerHTML = '';
+    $('departmentEmpty').innerHTML = '<div style="padding: 20px;"><div style="font-size:32px; margin-bottom:8px;">🔒</div><strong>' + esc(dept) + ' Department is Locked.</strong><br><button class="secondary sm" style="margin-top:10px;" onclick="promptDepartmentPin(\'' + esc(dept) + '\')">🔑 Enter Security PIN</button></div>';
+    $('departmentEmpty').style.display = 'block';
+    return;
+  }
+
+  // Department is Unlocked!
+  indicator.style.display = 'block';
+  indicator.innerHTML = '<span class="dept-unlocked-badge">🔓 Verified & Unlocked</span>';
 
   const own = jobs.filter(j => j.department === dept);
   summary.hidden = false;
@@ -1974,6 +2395,7 @@ setInterval(() => {
 }, 15000);
 
 // Startup Initialization
+loadSessionAuth();
 loadLocalStorage();
 render();
 fetchCloudData(false);
