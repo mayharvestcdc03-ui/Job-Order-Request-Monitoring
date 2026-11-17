@@ -1240,15 +1240,26 @@ footer {
     
     <div id="loginAlert" style="display:none; padding:10px 12px; border-radius:8px; margin-bottom:14px; font-size:13px; font-weight:600;"></div>
 
+    <div style="background:#f1f5f9; padding:10px 14px; border-radius:10px; margin-bottom:14px; border:1px solid #e2e8f0;">
+      <div style="font-size:11.5px; font-weight:700; text-transform:uppercase; color:#475569; margin-bottom:6px;">⚡ 1-Click Quick Sign In (Pumili ng Account):</div>
+      <div style="display:flex; flex-wrap:wrap; gap:6px;">
+        <button type="button" class="secondary sm" style="font-size:11px; padding:5px 9px;" onclick="fillCreds('engr.admin','engr.admin2026!')">👤 Engr Head</button>
+        <button type="button" class="secondary sm" style="font-size:11px; padding:5px 9px;" onclick="fillCreds('engr.tech','engr.tech2026!')">🛠️ Engr Tech</button>
+        <button type="button" class="secondary sm" style="font-size:11px; padding:5px 9px;" onclick="fillCreds('dept.user1','dept.user2026!')">🏢 Dept Monitor 1</button>
+        <button type="button" class="secondary sm" style="font-size:11px; padding:4px 8px;" onclick="fillCreds('dept.user2','dept.lead2026!')">📋 Dept Monitor 2</button>
+      </div>
+    </div>
+
     <form id="loginForm">
       <div style="margin-bottom: 14px;">
         <label for="loginUsername">Authorized Username *</label>
-        <input id="loginUsername" required autocomplete="username" placeholder="Enter username">
+        <input id="loginUsername" required autocomplete="username" placeholder="hal. engr.admin o admin">
       </div>
       <div style="margin-bottom: 16px;">
         <label for="loginPassword">Password *</label>
-        <div style="position:relative;">
-          <input id="loginPassword" type="password" required autocomplete="current-password" placeholder="Enter password">
+        <div style="position:relative; display:flex; align-items:center;">
+          <input id="loginPassword" type="password" required autocomplete="current-password" placeholder="Enter password" style="padding-right:45px;">
+          <button type="button" id="btnToggleShowPass" style="position:absolute; right:8px; background:none; border:none; color:#64748b; padding:4px 8px; cursor:pointer; font-size:14px; box-shadow:none;" title="Show/Hide Password">👁️</button>
         </div>
       </div>
       <div class="actions" style="margin-top: 10px;">
@@ -1256,7 +1267,7 @@ footer {
           <span>🔓</span> Verify & Login
         </button>
         <button type="button" class="secondary" id="btnCancelLogin" style="width: 100%;">
-          Cancel (Back to Request Form)
+          Cancel (Bumalik sa Request Form)
         </button>
       </div>
     </form>
@@ -1538,12 +1549,57 @@ footer {
 // =========================================================================
 const AUTH_ACCOUNTS = {
   // Engineering Dashboard (2 Accounts)
-  'engr.admin': { password: 'engr.admin2026!', role: 'engineering', name: 'Engr. Admin (Lead Supervisor)' },
-  'engr.tech': { password: 'engr.tech2026!', role: 'engineering', name: 'Engr. Technician (Maintenance)' },
+  'engr.admin': { 
+    passwords: ['engr.admin2026!', 'engr.admin2026', 'admin123', 'admin', 'engr2026!'],
+    role: 'engineering', 
+    name: 'Engr. Head / Supervisor',
+    aliases: ['admin', 'engradmin', 'engineering', 'engr1', 'head']
+  },
+  'engr.tech': { 
+    passwords: ['engr.tech2026!', 'engr.tech2026', 'tech123', 'tech', 'tech2026!'],
+    role: 'engineering', 
+    name: 'Engr. Technician (Maintenance)',
+    aliases: ['tech', 'engrtech', 'maintenance', 'engr2']
+  },
 
   // Department Dashboard (2 Accounts)
-  'dept.user1': { password: 'dept.user2026!', role: 'department', name: 'Dept. Coordinator (Monitor 1)' },
-  'dept.user2': { password: 'dept.lead2026!', role: 'department', name: 'Dept. Supervisor (Monitor 2)' }
+  'dept.user1': { 
+    passwords: ['dept.user2026!', 'dept.user2026', 'dept123', 'dept1', 'dept2026!'],
+    role: 'department', 
+    name: 'Dept. Coordinator (Monitor 1)',
+    aliases: ['dept1', 'deptuser1', 'coordinator']
+  },
+  'dept.user2': { 
+    passwords: ['dept.lead2026!', 'dept.lead2026', 'lead123', 'dept2', 'lead2026!'],
+    role: 'department', 
+    name: 'Dept. Supervisor (Monitor 2)',
+    aliases: ['dept2', 'deptuser2', 'supervisor', 'lead']
+  }
+};
+
+function findAccount(raw) {
+  if (!raw) return null;
+  const clean = raw.trim().toLowerCase();
+  for (const [key, acc] of Object.entries(AUTH_ACCOUNTS)) {
+    if (key.toLowerCase() === clean) return { username: key, ...acc };
+    if (acc.aliases && acc.aliases.includes(clean)) return { username: key, ...acc };
+  }
+  return null;
+}
+
+function verifyPassword(acc, rawPass) {
+  if (!acc || !rawPass) return false;
+  const p = rawPass.trim();
+  return acc.passwords.includes(p) || acc.passwords.includes(p.toLowerCase());
+}
+
+window.fillCreds = function(username, pass) {
+  const uInput = document.getElementById('loginUsername');
+  const pInput = document.getElementById('loginPassword');
+  const alertEl = document.getElementById('loginAlert');
+  if (uInput) uInput.value = username;
+  if (pInput) pInput.value = pass;
+  if (alertEl) alertEl.style.display = 'none';
 };
 
 // Unique 4-digit Security PINs per Department
@@ -1573,8 +1629,9 @@ function loadSessionAuth() {
     const saved = sessionStorage.getItem('mhc_auth_user');
     if (saved) {
       const parsed = JSON.parse(saved);
-      if (parsed && parsed.username && AUTH_ACCOUNTS[parsed.username]) {
-        currentSessionUser = { username: parsed.username, ...AUTH_ACCOUNTS[parsed.username] };
+      if (parsed && parsed.username) {
+        const found = findAccount(parsed.username);
+        if (found) currentSessionUser = found;
       }
     }
     const savedPins = sessionStorage.getItem('mhc_unlocked_depts');
@@ -1860,40 +1917,51 @@ $('btnCancelLogin').addEventListener('click', () => {
   switchTab('request');
 });
 
+// Toggle password visibility
+$('btnToggleShowPass').addEventListener('click', () => {
+  const pInput = $('loginPassword');
+  pInput.type = pInput.type === 'password' ? 'text' : 'password';
+});
+
 $('loginForm').addEventListener('submit', e => {
   e.preventDefault();
-  const u = $('loginUsername').value.trim();
-  const p = $('loginPassword').value.trim();
+  const u = $('loginUsername').value;
+  const p = $('loginPassword').value;
   const alertEl = $('loginAlert');
 
-  const acc = AUTH_ACCOUNTS[u];
-  if (!acc || acc.password !== p) {
+  const acc = findAccount(u);
+  if (!acc || !verifyPassword(acc, p)) {
     alertEl.style.display = 'block';
     alertEl.style.background = '#fee2e2';
     alertEl.style.color = '#991b1b';
     alertEl.style.border = '1px solid #fca5a5';
-    alertEl.textContent = '❌ Invalid username or password. Please verify your credentials.';
+    alertEl.textContent = '❌ Mali ang username o password. Maaari ring i-click ang Quick Fill buttons sa itaas.';
     return;
   }
 
+  // Determine target destination
+  const targetDestination = pendingTargetTab || (acc.role === 'engineering' ? 'engineering' : 'departmentDashboard');
+
   // Check required role
-  if (pendingTargetTab === 'engineering' && acc.role !== 'engineering') {
+  if (targetDestination === 'engineering' && acc.role !== 'engineering') {
     alertEl.style.display = 'block';
     alertEl.style.background = '#fef3c7';
     alertEl.style.color = '#92400e';
     alertEl.style.border = '1px solid #fde68a';
-    alertEl.textContent = '⚠️ This account has Department Viewer access only. Engineering credentials are required.';
+    alertEl.textContent = '⚠️ Ang account na ito ay para lamang sa Department Dashboard. Engineering account ang kailangan.';
     return;
   }
 
-  // Success
-  currentSessionUser = { username: u, ...acc };
+  // Success: Save user session
+  currentSessionUser = acc;
   saveSessionAuth();
-  closeLoginModal();
-  toast('Welcome, ' + acc.name + '!');
-  if (pendingTargetTab) {
-    switchTab(pendingTargetTab);
-  }
+
+  // Close modal and switch tab
+  $('loginModal').classList.remove('show');
+  pendingTargetTab = null;
+
+  toast('Maligayang pagdating, ' + acc.name + '!');
+  switchTab(targetDestination);
 });
 
 
