@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MHC Engineering Job Order System</title>
+<style>
+:root{--navy:#142b4a;--blue:#2563eb;--bg:#f3f6fb;--line:#dce4ef;--text:#1e293b;--muted:#64748b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:var(--text)}
+header{background:linear-gradient(120deg,#142b4a,#1d4e89);color:white;padding:24px clamp(16px,4vw,42px)}
+header h1{margin:0 0 6px;font-size:clamp(22px,3vw,30px)}header p{margin:0;color:#dbeafe;font-size:14px}
+main{max-width:1400px;margin:22px auto;padding:0 16px 40px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.tab{border:1px solid var(--line);background:white;padding:11px 15px;border-radius:9px;cursor:pointer;font-weight:700;color:#334155}
+.tab.active{background:var(--navy);color:white;border-color:var(--navy)}
+.panel{background:white;border:1px solid var(--line);border-radius:14px;padding:20px;box-shadow:0 4px 16px #0f172a0a}
+h2{margin:0 0 16px;font-size:21px}.sub{color:var(--muted);font-size:13px;margin-top:-9px;margin-bottom:18px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+label{display:block;font-size:13px;font-weight:700;margin-bottom:6px;color:#334155}
+input,select,textarea{width:100%;padding:11px 12px;border:1px solid #cbd5e1;border-radius:8px;font:inherit;background:white;color:var(--text)}
+textarea{min-height:110px;resize:vertical}.full{grid-column:1/-1}
+button{border:0;border-radius:8px;padding:11px 15px;background:var(--blue);color:white;font-weight:700;cursor:pointer}
+button:hover{filter:brightness(.95)}button.secondary{background:#e8eef7;color:#1e3a5f}button.danger{background:#fee2e2;color:#991b1b}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.notice{padding:11px 13px;border-radius:8px;background:#eff6ff;color:#1e40af;font-size:13px;margin-bottom:16px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.stat{background:white;border:1px solid var(--line);border-radius:11px;padding:14px}.stat span{display:block;color:var(--muted);font-size:12px}.stat strong{display:block;font-size:25px;margin-top:5px}
+.filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:15px 0}
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:1050px;font-size:13px}th,td{padding:11px 10px;border-bottom:1px solid #e8edf4;text-align:left;vertical-align:top}th{background:#f8fafc;color:#475569;position:sticky;top:0}tr:last-child td{border-bottom:0}
+.pill{display:inline-block;padding:4px 8px;border-radius:20px;font-size:11px;font-weight:700;background:#e2e8f0;color:#334155}.p-Pending{background:#fef3c7;color:#92400e}.p-Ongoing{background:#dbeafe;color:#1d4ed8}.p-Done{background:#dcfce7;color:#166534}.p-Cancelled{background:#e2e8f0;color:#475569;text-decoration:line-through}.p-High{background:#fee2e2;color:#991b1b}.p-Urgent{background:#fecaca;color:#7f1d1d}.small{font-size:12px;color:var(--muted)}
+.empty{text-align:center;color:var(--muted);padding:28px}
+.modal{display:none;position:fixed;inset:0;background:#0f172a88;z-index:5;align-items:center;justify-content:center;padding:16px}.modal.show{display:flex}.modal-box{background:white;border-radius:14px;padding:22px;width:min(520px,100%);max-height:90vh;overflow:auto}.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}.modal-head h3{margin:0}
+.charts{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;margin-bottom:18px}
+.chart-card{background:white;border:1px solid var(--line);border-radius:11px;padding:14px;text-align:center;break-inside:avoid}
+.chart-card h4{margin:0 0 8px;font-size:14px;color:var(--navy)}
+.chart-card svg{width:150px;height:150px;display:block;margin:0 auto 8px}
+.legend{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;font-size:12px;color:#334155}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:middle}
+.section-title{font-size:16px;margin:4px 0 10px;color:var(--navy)}
+.dept-select-row{grid-template-columns:minmax(220px,360px) 1fr;align-items:end}
+footer{color:var(--muted);font-size:12px;text-align:center;padding:20px}
+@media(max-width:800px){.dept-select-row{grid-template-columns:1fr}.grid{grid-template-columns:1fr 1fr}.stats{grid-template-columns:1fr 1fr}.filters{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.grid,.filters,.dept-select-row{grid-template-columns:1fr}.panel{padding:15px}}
+@media print{header,.tabs,.filters,.actions,.no-print,footer{display:none!important}body{background:white}.panel{box-shadow:none;border:0;padding:0}.table-wrap{overflow:visible}table{min-width:0;font-size:9px}th,td{padding:5px}}
+</style>
+</head>
+<body>
+<header><h1>MHC Engineering & Maintenance</h1><p>Department Job Order Request and Monitoring System</p></header>
+<main>
+<div class="tabs">
+<button class="tab active" data-tab="request">Department Request Form</button>
+<button class="tab" data-tab="engineering">Engineering Dashboard</button>
+<button class="tab" data-tab="departmentDashboard">Department Dashboard</button>
+</div>
+<section id="request" class="panel">
+<h2>Submit a Job Order Request</h2>
+<p class="sub">Select your department and provide the details of the repair or concern.</p>
+<div class="notice">After submission, your request will automatically appear in the Engineering Dashboard with a generated Job Order Number.</div>
+<form id="requestForm">
+<div class="grid">
+<div><label for="department">Department *</label><select id="department" required>
+<option value="">Select department</option><option>Admin</option><option>Basic-RKD</option><option>Basic-Clean</option><option>Further</option><option>Blast</option><option>Warehouse</option><option>Quality</option><option>Utility</option><option>Canteen</option><option>SMFI</option><option>Others</option>
+</select></div>
+<div><label for="requester">Requested By *</label><input id="requester" required placeholder="Full name"></div>
+<div><label for="area">Area *</label><input id="area" required placeholder="e.g. Production Area / Office"></div>
+<div class="full"><label for="details">Details of Request *</label><textarea id="details" required placeholder="Describe the equipment, repair needed, or concern..."></textarea></div>
+</div>
+<div class="actions"><button type="submit">Submit Request</button><button type="reset" class="secondary">Clear Form</button></div>
+</form>
+<div id="submitMessage" class="small" role="status" style="margin-top:12px"></div>
+</section>
+<section id="departmentDashboard" class="panel" hidden>
+<h2>Department Job Order Dashboard</h2>
+<p class="sub">Each department can view the requests submitted under its department and monitor the latest status.</p>
+<div class="grid dept-select-row">
+<div><label for="departmentView">Select Department</label><select id="departmentView">
+<option value="">Select department</option><option>Admin</option><option>Basic-RKD</option><option>Basic-Clean</option><option>Further</option><option>Blast</option><option>Warehouse</option><option>Quality</option><option>Utility</option><option>Canteen</option><option>SMFI</option><option>Others</option>
+</select></div>
+<div class="small" id="departmentHint">Choose your department to view its job order requests.</div>
+</div>
+<div id="departmentSummary" class="stats" style="margin-top:16px" hidden>
+<div class="stat"><span>Total Requests</span><strong id="deptTotal">0</strong></div>
+<div class="stat"><span>Pending</span><strong id="deptPending">0</strong></div>
+<div class="stat"><span>Ongoing</span><strong id="deptOngoing">0</strong></div>
+<div class="stat"><span>Done</span><strong id="deptDone">0</strong></div>
+</div>
+<div id="deptChart" class="charts" style="max-width:260px" hidden></div>
+<div class="table-wrap" style="margin-top:16px">
+<table style="min-width:850px"><thead><tr><th>Job Order No.</th><th>Requested By</th><th>Area</th><th>Details of Request</th><th>Date Requested</th><th>Date Received</th><th>Priority</th><th>Status</th></tr></thead><tbody id="departmentJobsBody"></tbody></table>
+<div id="departmentEmpty" class="empty">Select a department to view its requests.</div>
+</div>
+</section>
+<section id="engineering" class="panel" hidden>
+<h2>Engineering Job Order Monitoring</h2>
+<p class="sub">View, receive, prioritize, and update all department requests.</p>
+<div class="stats">
+<div class="stat"><span>Total Requests</span><strong id="totalCount">0</strong></div>
+<div class="stat"><span>For Receiving</span><strong id="newCount">0</strong></div>
+<div class="stat"><span>Ongoing</span><strong id="ongoingCount">0</strong></div>
+<div class="stat"><span>Done</span><strong id="doneCount">0</strong></div>
+</div>
+<h3 class="section-title">Status Chart per Department</h3>
+<div id="deptCharts" class="charts"></div>
+<div class="filters no-print">
+<div><label for="filterDept">Department</label><select id="filterDept"><option value="">All Departments</option><option>Admin</option><option>Basic-RKD</option><option>Basic-Clean</option><option>Further</option><option>Blast</option><option>Warehouse</option><option>Quality</option><option>Utility</option><option>Canteen</option><option>SMFI</option><option>Others</option></select></div>
+<div><label for="filterStatus">Status</label><select id="filterStatus"><option value="">All Statuses</option><option>Pending</option><option>Ongoing</option><option>Done</option><option>Cancelled</option></select></div>
+<div><label for="filterPriority">Priority</label><select id="filterPriority"><option value="">All Priorities</option><option>Urgent</option><option>High</option><option>Normal</option><option>Low</option></select></div>
+<div><label for="searchText">Search</label><input id="searchText" placeholder="JO no., requester, area..."></div>
+</div>
+<div class="actions no-print" style="margin:0 0 12px"><button class="secondary" id="exportCsv">Export CSV</button><button class="secondary" onclick="window.print()">Print Dashboard</button><button class="secondary" id="backup">Download Backup</button><label class="secondary" style="padding:11px 15px;border-radius:8px;cursor:pointer">Import Backup<input id="restore" type="file" accept=".json" hidden></label></div>
+<div class="table-wrap"><table><thead><tr><th>Job Order No.</th><th>Department</th><th>Requested By</th><th>Area / Details</th><th>Date Requested</th><th>Received By</th><th>Date Received</th><th>Priority</th><th>Status</th><th class="no-print">Action</th></tr></thead><tbody id="jobsBody"></tbody></table><div id="emptyState" class="empty">No job order requests found.</div></div>
+</section>
+</main>
+<div class="modal" id="jobModal"><div class="modal-box">
+<div class="modal-head"><h3>Update Job Order</h3><button class="secondary" id="closeModal">Close</button></div>
+<div id="modalJobNo" class="notice"></div>
+<form id="updateForm">
+<input type="hidden" id="editId">
+<div style="margin-bottom:12px"><label for="receivedBy">Engineering Personnel Who Received</label><input id="receivedBy" placeholder="Full name of receiving personnel"></div>
+<div style="margin-bottom:12px"><label for="priority">Prioritization</label><select id="priority"><option>Normal</option><option>Urgent</option><option>High</option><option>Low</option></select></div>
+<div style="margin-bottom:12px"><label for="status">Status</label><select id="status"><option>Pending</option><option>Ongoing</option><option>Done</option><option>Cancelled</option></select></div>
+<div class="small">Date received is automatically recorded the first time the request is saved with a receiving personnel name.</div>
+<div class="actions"><button type="submit">Save Update</button></div>
+</form>
+</div></div>
+<footer>MHC Job Order System • Data is saved in this browser on this device.</footer>
+<script>
+const STORAGE_KEY='mhc_job_orders_v1';
+let jobs=[];try{jobs=JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');if(!Array.isArray(jobs))jobs=[];}catch(e){jobs=[];}
+const $=id=>document.getElementById(id);
+const slug={Admin:'ADMIN','Basic-RKD':'BASIC-RKD','Basic-Clean':'BASIC-CLEAN',Further:'FURTHER',Blast:'BLAST',Warehouse:'WAREHOUSE',Quality:'QUALITY',Utility:'UTILITY',Canteen:'CANTEEN',SMFI:'SMFI',Others:'OTHERS'};
+function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(jobs));render();}
+function dateTime(){return new Date().toLocaleString('en-PH',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});}
+function nextNumber(dept){const prefix='MHC-JO-'+slug[dept]+'-';const nums=jobs.filter(j=>j.jobNo.startsWith(prefix)).map(j=>parseInt(j.jobNo.slice(prefix.length),10)||0);return prefix+String(Math.max(0,...nums)+1).padStart(3,'0');}
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));$('request').hidden=b.dataset.tab!=='request';$('departmentDashboard').hidden=b.dataset.tab!=='departmentDashboard';$('engineering').hidden=b.dataset.tab!=='engineering';if(b.dataset.tab==='engineering')render();if(b.dataset.tab==='departmentDashboard')renderDepartmentDashboard();}));
+$('requestForm').addEventListener('submit',e=>{e.preventDefault();const dept=$('department').value;const job={id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),jobNo:nextNumber(dept),department:dept,requester:$('requester').value.trim(),area:$('area').value.trim(),details:$('details').value.trim(),requestedAt:dateTime(),receivedBy:'',receivedAt:'',priority:'Normal',status:'Pending'};jobs.unshift(job);save();$('requestForm').reset();$('submitMessage').textContent='Request submitted successfully. Your Job Order Number is '+job.jobNo+'.';});
+const STATUS_COLORS={Pending:'#f59e0b',Ongoing:'#2563eb',Done:'#16a34a',Cancelled:'#94a3b8'};
+const DEPTS=['Admin','Basic-RKD','Basic-Clean','Further','Blast','Warehouse','Quality','Utility','Canteen','SMFI','Others'];
+function pieCard(title,list){
+ const counts={Pending:0,Ongoing:0,Done:0,Cancelled:0};
+ list.forEach(j=>{if(counts[j.status]!==undefined)counts[j.status]++;});
+ const total=Object.values(counts).reduce((a,b)=>a+b,0);
+ const cx=75,cy=75,r=68;let svg='';
+ if(!total){svg=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="#e2e8f0"/><text x="${cx}" y="${cy+4}" text-anchor="middle" font-size="12" fill="#64748b">No requests</text>`;}
+ else{
+  const used=Object.keys(counts).filter(k=>counts[k]>0);
+  if(used.length===1){svg=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${STATUS_COLORS[used[0]]}"/>`;}
+  else{
+   let a=-Math.PI/2;
+   used.forEach(k=>{const ang=counts[k]/total*2*Math.PI;const x1=cx+r*Math.cos(a),y1=cy+r*Math.sin(a);a+=ang;const x2=cx+r*Math.cos(a),y2=cy+r*Math.sin(a);svg+=`<path d="M${cx} ${cy} L${x1.toFixed(2)} ${y1.toFixed(2)} A${r} ${r} 0 ${ang>Math.PI?1:0} 1 ${x2.toFixed(2)} ${y2.toFixed(2)} Z" fill="${STATUS_COLORS[k]}" stroke="white" stroke-width="2"/>`;});
+  }
+  // percentage labels
+  let b=-Math.PI/2;
+  used.forEach(k=>{const ang=counts[k]/total*2*Math.PI;const m=b+ang/2;b+=ang;const pct=Math.round(counts[k]/total*100);if(pct>=8){svg+=`<text x="${(cx+r*0.62*Math.cos(m)).toFixed(1)}" y="${(cy+r*0.62*Math.sin(m)+4).toFixed(1)}" text-anchor="middle" font-size="12" font-weight="700" fill="white">${pct}%</text>`;}});
+ }
+ const legend=Object.keys(counts).map(k=>`<span><i style="background:${STATUS_COLORS[k]}"></i>${k}: <b>${counts[k]}</b></span>`).join('');
+ return `<div class="chart-card"><h4>${esc(title)} <span class="small">(${total})</span></h4><svg viewBox="0 0 150 150" role="img" aria-label="${esc(title)} status chart">${svg}</svg><div class="legend">${legend}</div></div>`;
+}
+function renderCharts(){
+ $('deptCharts').innerHTML=pieCard('All Departments',jobs)+DEPTS.map(d=>pieCard(d,jobs.filter(j=>j.department===d))).join('');
+}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+$('departmentView').addEventListener('change',renderDepartmentDashboard);
+function renderDepartmentDashboard(){
+ const dept=$('departmentView').value;
+ const summary=$('departmentSummary');
+ if(!dept){summary.hidden=true;$('deptChart').hidden=true;$('departmentHint').textContent='Choose your department to view its job order requests.';$('departmentJobsBody').innerHTML='';$('departmentEmpty').textContent='Select a department to view its requests.';$('departmentEmpty').style.display='block';return;}
+ const own=jobs.filter(j=>j.department===dept);
+ summary.hidden=false;
+ $('deptChart').innerHTML=pieCard(dept,own);$('deptChart').hidden=false;
+ $('departmentHint').textContent='Showing '+own.length+' request(s) submitted by '+dept+'.';
+ $('deptTotal').textContent=own.length;
+ $('deptPending').textContent=own.filter(j=>j.status==='Pending').length;
+ $('deptOngoing').textContent=own.filter(j=>j.status==='Ongoing').length;
+ $('deptDone').textContent=own.filter(j=>j.status==='Done').length;
+ $('departmentJobsBody').innerHTML=own.map(j=>`<tr><td><b>${esc(j.jobNo)}</b></td><td>${esc(j.requester)}</td><td>${esc(j.area)}</td><td>${esc(j.details)}</td><td>${esc(j.requestedAt)}</td><td>${esc(j.receivedAt)||'Not yet received'}</td><td><span class="pill p-${esc(j.priority)}">${esc(j.priority)}</span></td><td><span class="pill p-${esc(j.status)}">${esc(j.status)}</span></td></tr>`).join('');
+ $('departmentEmpty').style.display=own.length?'none':'block';
+ $('departmentEmpty').textContent='No requests submitted by this department yet.';
+}
+function render(){const dept=$('filterDept').value,status=$('filterStatus').value,priority=$('filterPriority').value,q=$('searchText').value.toLowerCase();
+$('totalCount').textContent=jobs.length;$('newCount').textContent=jobs.filter(j=>!j.receivedBy&&j.status!=='Cancelled').length;$('ongoingCount').textContent=jobs.filter(j=>j.status==='Ongoing').length;$('doneCount').textContent=jobs.filter(j=>j.status==='Done').length;
+const filtered=jobs.filter(j=>(!dept||j.department===dept)&&(!status||j.status===status)&&(!priority||j.priority===priority)&&(!q||[j.jobNo,j.requester,j.area,j.details,j.receivedBy].join(' ').toLowerCase().includes(q)));
+$('jobsBody').innerHTML=filtered.map(j=>`<tr><td><b>${esc(j.jobNo)}</b></td><td>${esc(j.department)}</td><td>${esc(j.requester)}</td><td><b>${esc(j.area)}</b><br>${esc(j.details)}</td><td>${esc(j.requestedAt)}</td><td>${esc(j.receivedBy)||'<span class="small">Not yet received</span>'}</td><td>${esc(j.receivedAt)||'—'}</td><td><span class="pill p-${esc(j.priority)}">${esc(j.priority)}</span></td><td><span class="pill p-${esc(j.status)}">${esc(j.status)}</span></td><td class="no-print"><button class="secondary" onclick="editJob('${j.id}')">Update</button> <button class="danger" onclick="deleteJob('${j.id}')">Delete</button></td></tr>`).join('');
+$('emptyState').style.display=filtered.length?'none':'block';
+renderCharts();
+}
+['filterDept','filterStatus','filterPriority','searchText'].forEach(id=>$(id).addEventListener('input',render));
+window.editJob=id=>{const j=jobs.find(x=>x.id===id);if(!j)return;$('editId').value=id;$('modalJobNo').textContent=j.jobNo+' • '+j.department;$('receivedBy').value=j.receivedBy;$('priority').value=j.priority;$('status').value=j.status;$('jobModal').classList.add('show');};
+window.deleteJob=id=>{const j=jobs.find(x=>x.id===id);if(!j)return;if(confirm('Delete '+j.jobNo+' ('+j.department+')? This cannot be undone.')){jobs=jobs.filter(x=>x.id!==id);save();}};
+function closeModal(){$('jobModal').classList.remove('show');}
+$('closeModal').addEventListener('click',closeModal);$('jobModal').addEventListener('click',e=>{if(e.target===$('jobModal'))closeModal();});
+$('updateForm').addEventListener('submit',e=>{e.preventDefault();const j=jobs.find(x=>x.id===$('editId').value);if(!j)return;const receiver=$('receivedBy').value.trim();if(receiver&&!j.receivedAt)j.receivedAt=dateTime();if(!receiver)j.receivedAt='';j.receivedBy=receiver;j.priority=$('priority').value;j.status=$('status').value;save();closeModal();});
+$('exportCsv').addEventListener('click',()=>{const cols=['jobNo','department','requester','area','details','requestedAt','receivedBy','receivedAt','priority','status'];const csv=[cols.join(','),...jobs.map(j=>cols.map(k=>'"'+String(j[k]??'').replace(/"/g,'""')+'"').join(','))].join('\r\n');download(new Blob([csv],{type:'text/csv;charset=utf-8;'}),'MHC_Job_Order_Export.csv');});
+$('backup').addEventListener('click',()=>download(new Blob([JSON.stringify(jobs,null,2)],{type:'application/json'}),'MHC_Job_Order_Backup.json'));
+function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();URL.revokeObjectURL(a.href);}
+$('restore').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{const data=JSON.parse(await f.text());if(!Array.isArray(data)||!data.every(j=>j.jobNo&&j.department&&j.id))throw Error();if(confirm('Import and replace the current job order records?')){jobs=data;save();alert('Backup imported successfully.');}}catch(err){alert('Invalid backup file.');}e.target.value='';});
+render();
+</script>
+</body></html>
