@@ -1358,6 +1358,7 @@ footer {
       <div id="headerAuthContainer" style="display:flex; align-items:center; gap:8px;">
         <div class="auth-user-badge" id="authUserBadge">
           <span>🔓</span> <span id="authUserName">Open Staff Access</span>
+          <button class="btn-logout" id="btnLogout" style="display:none;" title="Log out session">Logout</button>
         </div>
         <button class="btn-portal-exit" id="btnExitToPortal" title="Bumalik sa Login Portal Screen">
           🚪 Exit to Portal
@@ -1931,6 +1932,7 @@ footer {
 </footer>
 
 <script>
+const $ = id => document.getElementById(id);
 
 // =========================================================================
 // AUTHENTICATION & ACCESS CONTROL CREDENTIALS & SECURITY PINS
@@ -2026,16 +2028,60 @@ function hidePortal() {
   if (gate) gate.classList.add('hidden');
 }
 
-window.fillPortalEngr = function(u, p) {
+function doEngrLogin(u, p) {
+  const alertEl = $('portalEngrAlert');
+  const acc = findAccount(u);
+  if (!acc || !verifyPassword(acc, p) || acc.role !== 'engineering') {
+    if (alertEl) {
+      alertEl.style.display = 'block';
+      alertEl.textContent = '❌ Mali ang username o password para sa Engineering.';
+    }
+    return;
+  }
+
+  currentSessionUser = acc;
+  saveSessionAuth();
+  sessionStorage.setItem('mhc_portal_entered', 'true');
+  hidePortal();
+  toast('Welcome, ' + acc.name + '!');
+  switchTab('engineering');
+}
+
+function doDeptLogin(u, p) {
+  const alertEl = $('portalDeptAlert');
+  const acc = findAccount(u);
+  if (!acc || !verifyPassword(acc, p)) {
+    if (alertEl) {
+      alertEl.style.display = 'block';
+      alertEl.textContent = '❌ Mali ang username o password para sa Department.';
+    }
+    return;
+  }
+
+  currentSessionUser = acc;
+  saveSessionAuth();
+  sessionStorage.setItem('mhc_portal_entered', 'true');
+  hidePortal();
+  toast('Welcome, ' + acc.name + '!');
+  switchTab('departmentDashboard');
+}
+
+window.fillPortalEngr = function(u, p, autoSubmit = true) {
   $('portalEngrUser').value = u;
   $('portalEngrPass').value = p;
-  $('portalEngrAlert').style.display = 'none';
+  if ($('portalEngrAlert')) $('portalEngrAlert').style.display = 'none';
+  if (autoSubmit) {
+    doEngrLogin(u, p);
+  }
 };
 
-window.fillPortalDept = function(u, p) {
+window.fillPortalDept = function(u, p, autoSubmit = true) {
   $('portalDeptUser').value = u;
   $('portalDeptPass').value = p;
-  $('portalDeptAlert').style.display = 'none';
+  if ($('portalDeptAlert')) $('portalDeptAlert').style.display = 'none';
+  if (autoSubmit) {
+    doDeptLogin(u, p);
+  }
 };
 
 // Exit to Portal / Switch Account
@@ -2062,48 +2108,20 @@ $('btnEnterStaff').addEventListener('click', () => {
 });
 
 // Option 2: Engineering Login from Portal
-$('portalEngrForm').addEventListener('submit', e => {
-  e.preventDefault();
-  const u = $('portalEngrUser').value;
-  const p = $('portalEngrPass').value;
-  const alertEl = $('portalEngrAlert');
-
-  const acc = findAccount(u);
-  if (!acc || !verifyPassword(acc, p) || acc.role !== 'engineering') {
-    alertEl.style.display = 'block';
-    alertEl.textContent = '❌ Mali ang username o password para sa Engineering.';
-    return;
-  }
-
-  currentSessionUser = acc;
-  saveSessionAuth();
-  sessionStorage.setItem('mhc_portal_entered', 'true');
-  hidePortal();
-  toast('Welcome, ' + acc.name + '!');
-  switchTab('engineering');
-});
+if ($('portalEngrForm')) {
+  $('portalEngrForm').addEventListener('submit', e => {
+    e.preventDefault();
+    doEngrLogin($('portalEngrUser').value, $('portalEngrPass').value);
+  });
+}
 
 // Option 3: Department Login from Portal
-$('portalDeptForm').addEventListener('submit', e => {
-  e.preventDefault();
-  const u = $('portalDeptUser').value;
-  const p = $('portalDeptPass').value;
-  const alertEl = $('portalDeptAlert');
-
-  const acc = findAccount(u);
-  if (!acc || !verifyPassword(acc, p)) {
-    alertEl.style.display = 'block';
-    alertEl.textContent = '❌ Mali ang username o password para sa Department.';
-    return;
-  }
-
-  currentSessionUser = acc;
-  saveSessionAuth();
-  sessionStorage.setItem('mhc_portal_entered', 'true');
-  hidePortal();
-  toast('Welcome, ' + acc.name + '!');
-  switchTab('departmentDashboard');
-});
+if ($('portalDeptForm')) {
+  $('portalDeptForm').addEventListener('submit', e => {
+    e.preventDefault();
+    doDeptLogin($('portalDeptUser').value, $('portalDeptPass').value);
+  });
+}
 
 // Check on initial startup: If user hasn't entered through portal yet, show portal!
 function checkInitialPortal() {
@@ -2162,15 +2180,19 @@ function updateHeaderAuthUI() {
   }
 }
 
-$('btnLogout').addEventListener('click', () => {
-  if (confirm('Log out of this monitoring session?')) {
-    currentSessionUser = null;
-    unlockedDepartments.clear();
-    saveSessionAuth();
-    switchTab('request');
-    toast('Logged out successfully.');
-  }
-});
+if ($('btnLogout')) {
+  $('btnLogout').addEventListener('click', () => {
+    if (confirm('Log out of this monitoring session?')) {
+      currentSessionUser = null;
+      unlockedDepartments.clear();
+      saveSessionAuth();
+      sessionStorage.removeItem('mhc_portal_entered');
+      showPortal();
+      switchTab('request');
+      toast('Logged out successfully.');
+    }
+  });
+}
 
 const STORAGE_KEY = 'mhc_job_orders_v1';
 const API_URL = '/api/data';
@@ -2180,7 +2202,7 @@ let jobs = [];
 let isCloudConnected = false;
 let currentSlipJob = null;
 
-const $ = id => document.getElementById(id);
+
 const slug = {
   Admin: 'ADMIN',
   'Basic-RKD': 'BASIC-RKD',
