@@ -1,0 +1,1982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MHC Engineering Job Order Request & Monitoring System</title>
+<link rel="icon" type="image/png" href="assets/mhc-logo.png">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+:root {
+  --navy: #0f172a;
+  --navy-light: #1e293b;
+  --emerald: #059669;
+  --emerald-dark: #047857;
+  --emerald-light: #d1fae5;
+  --blue: #2563eb;
+  --blue-dark: #1d4ed8;
+  --blue-light: #dbeafe;
+  --amber: #d97706;
+  --red: #dc2626;
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --line: #e2e8f0;
+  --text: #1e293b;
+  --muted: #64748b;
+  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: var(--text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Header */
+header {
+  background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+  color: white;
+  padding: 18px clamp(16px, 4vw, 36px);
+  border-bottom: 3px solid #10b981;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+.header-container {
+  max-width: 1440px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.header-logo {
+  height: 52px;
+  width: auto;
+  object-fit: contain;
+  background: white;
+  padding: 4px 8px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.header-titles h1 {
+  margin: 0 0 4px;
+  font-size: clamp(20px, 2.5vw, 26px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.header-titles p {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 500;
+}
+.header-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.live-clock {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-variant-numeric: tabular-nums;
+}
+.sync-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  transition: all 0.3s ease;
+}
+.sync-badge.online {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+.sync-badge.syncing {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+.sync-badge.offline {
+  background: rgba(148, 163, 184, 0.2);
+  color: #cbd5e1;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+}
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 8px currentColor;
+  display: inline-block;
+}
+.btn-sync-head {
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.25);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+.btn-sync-head:hover {
+  background: rgba(255,255,255,0.22);
+  transform: translateY(-1px);
+}
+.btn-sync-head.spin i {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+/* Main Container */
+main {
+  max-width: 1440px;
+  margin: 24px auto;
+  padding: 0 20px 60px;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.tab {
+  border: 1px solid var(--line);
+  background: white;
+  padding: 12px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 14px;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  transition: all 0.2s ease;
+}
+.tab:hover {
+  background: #f1f5f9;
+  color: var(--navy);
+  border-color: #cbd5e1;
+}
+.tab.active {
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  color: white;
+  border-color: #0f172a;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
+}
+
+/* Panels */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+h2 {
+  margin: 0 0 6px;
+  font-size: 22px;
+  font-weight: 800;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sub {
+  color: var(--muted);
+  font-size: 13.5px;
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+.notice {
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+  font-size: 13.5px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Form Grid */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.grid-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.full {
+  grid-column: 1 / -1;
+}
+label {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: #334155;
+}
+input, select, textarea {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 14px;
+  background: white;
+  color: var(--text);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+/* Buttons */
+button {
+  border: 0;
+  border-radius: 8px;
+  padding: 11px 18px;
+  background: var(--blue);
+  color: white;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+}
+button:hover {
+  background: var(--blue-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+}
+button:active {
+  transform: translateY(0);
+}
+button.secondary {
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+  box-shadow: none;
+}
+button.secondary:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+button.success {
+  background: #059669;
+  color: white;
+}
+button.success:hover {
+  background: #047857;
+}
+button.danger {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+  box-shadow: none;
+}
+button.danger:hover {
+  background: #fecaca;
+}
+button.warning {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+  box-shadow: none;
+}
+button.warning:hover {
+  background: #fde68a;
+}
+button.sm {
+  padding: 6px 10px;
+  font-size: 12px;
+  border-radius: 6px;
+}
+.actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+/* Stats Cards */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.stat {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px 20px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-left: 4px solid var(--blue);
+}
+.stat.stat-total { border-left-color: #6366f1; }
+.stat.stat-pending { border-left-color: #f59e0b; }
+.stat.stat-ongoing { border-left-color: #3b82f6; }
+.stat.stat-done { border-left-color: #10b981; }
+.stat span {
+  display: block;
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.stat strong {
+  display: block;
+  font-size: 30px;
+  font-weight: 800;
+  margin-top: 6px;
+  color: #0f172a;
+}
+
+/* Filters */
+.filters {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+}
+
+/* Table */
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 1100px;
+  font-size: 13px;
+}
+th, td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #e8edf4;
+  text-align: left;
+  vertical-align: middle;
+}
+th {
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+tr:hover td {
+  background: #fcfdfe;
+}
+tr:last-child td {
+  border-bottom: 0;
+}
+
+/* Badges / Pills */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11.5px;
+  font-weight: 700;
+  background: #e2e8f0;
+  color: #334155;
+  white-space: nowrap;
+}
+.p-Pending { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+.p-Ongoing { background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.p-Done { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+.p-Cancelled { background: #f1f5f9; color: #64748b; text-decoration: line-through; border: 1px solid #e2e8f0; }
+
+.p-Urgent { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; font-weight: 800; }
+.p-High { background: #ffedd5; color: #c2410c; border: 1px solid #fdba74; }
+.p-Normal { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; }
+.p-Low { background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; }
+
+.small { font-size: 12px; color: var(--muted); }
+.empty { text-align: center; color: var(--muted); padding: 36px 20px; font-weight: 500; }
+
+/* Modals */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: fadeIn 0.15s ease-out;
+}
+.modal.show { display: flex; }
+.modal-box {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  width: min(600px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2), 0 8px 10px -6px rgba(0,0,0,0.2);
+}
+.modal-box.large {
+  width: min(920px, 98%);
+  padding: 20px 28px;
+}
+.modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.modal-head h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* Charts */
+.charts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 22px;
+}
+.chart-card {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.chart-card h4 {
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--navy);
+}
+.chart-card svg {
+  width: 140px;
+  height: 140px;
+  display: block;
+  margin: 0 auto 10px;
+}
+.legend {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 11.5px;
+  color: #334155;
+}
+.legend span {
+  display: inline-flex;
+  align-items: center;
+}
+.legend i {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+.section-title {
+  font-size: 17px;
+  font-weight: 700;
+  margin: 18px 0 12px;
+  color: var(--navy);
+}
+.dept-select-row {
+  grid-template-columns: minmax(240px, 380px) 1fr;
+  align-items: end;
+}
+
+/* Toast */
+#toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #0f172a;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+#toast.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* -------------------------------------------------------------
+   OFFICIAL PRINTABLE JOB ORDER SLIP (MHC-ENG-JO-01)
+---------------------------------------------------------------- */
+#printSlipContent {
+  background: white;
+  color: #111827;
+  padding: 24px 28px;
+  border-radius: 8px;
+  border: 2px solid #0f172a;
+  font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+  line-height: 1.4;
+}
+.slip-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 2px solid #0f172a;
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+}
+.slip-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.slip-logo {
+  height: 54px;
+  width: auto;
+  object-fit: contain;
+}
+.slip-company {
+  font-size: 20px;
+  font-weight: 900;
+  color: #065f46;
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+.slip-dept {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 2px 0 0;
+  text-transform: uppercase;
+}
+.slip-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #1e3a8a;
+  margin: 2px 0 0;
+  letter-spacing: 0.01em;
+}
+.slip-doc-box {
+  border: 1px solid #0f172a;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 11px;
+  line-height: 1.4;
+  background: #f8fafc;
+  min-width: 170px;
+}
+.slip-doc-box div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.slip-doc-box strong {
+  font-weight: 700;
+}
+
+/* Slip Meta Bar */
+.slip-meta-bar {
+  display: grid;
+  grid-template-columns: 2fr 1.2fr 1fr 1fr;
+  gap: 8px;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  padding: 10px 14px;
+  border-radius: 6px;
+  margin-bottom: 14px;
+  font-size: 12px;
+}
+.slip-meta-item label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 2px;
+  font-weight: 700;
+}
+.slip-meta-item div {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+/* Slip Sections */
+.slip-sec {
+  border: 1px solid #0f172a;
+  margin-bottom: 14px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.slip-sec-title {
+  background: #0f172a;
+  color: white;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.slip-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+.slip-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+}
+.slip-cell {
+  padding: 8px 12px;
+  border-right: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 12.5px;
+}
+.slip-cell:last-child {
+  border-right: 0;
+}
+.slip-cell.border-b-0 {
+  border-bottom: 0;
+}
+.slip-cell label {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+.slip-cell .val {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+  min-height: 18px;
+}
+
+/* Slip Signatures */
+.slip-sigs {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  border: 1px solid #0f172a;
+  border-radius: 4px;
+  margin-top: 14px;
+  background: white;
+}
+.slip-sig-box {
+  padding: 10px 14px;
+  border-right: 1px solid #0f172a;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 130px;
+}
+.slip-sig-box:last-child {
+  border-right: 0;
+}
+.slip-sig-title {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #0f172a;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 4px;
+  margin-bottom: 6px;
+}
+.slip-sig-space {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 6px 0;
+}
+.slip-sig-seal {
+  display: inline-block;
+  border: 1.5px dashed #059669;
+  background: #ecfdf5;
+  color: #047857;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.slip-sig-line {
+  border-top: 1.5px solid #0f172a;
+  padding-top: 4px;
+  text-align: center;
+}
+.slip-sig-name {
+  font-size: 12px;
+  font-weight: 800;
+  color: #0f172a;
+  text-transform: uppercase;
+}
+.slip-sig-role {
+  font-size: 10.5px;
+  color: #475569;
+  margin-top: 1px;
+}
+
+/* Footer note */
+.slip-footer-note {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: #64748b;
+}
+
+footer {
+  color: var(--muted);
+  font-size: 12.5px;
+  text-align: center;
+  padding: 24px 20px;
+  border-top: 1px solid var(--line);
+  background: white;
+}
+
+/* Responsive */
+@media(max-width: 900px) {
+  .grid { grid-template-columns: 1fr 1fr; }
+  .stats { grid-template-columns: 1fr 1fr; }
+  .filters { grid-template-columns: 1fr 1fr; }
+  .slip-meta-bar { grid-template-columns: 1fr 1fr; }
+}
+@media(max-width: 600px) {
+  .grid, .grid-2, .filters, .dept-select-row { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: 1fr; }
+  .panel { padding: 16px; }
+  .slip-grid-2, .slip-grid-3, .slip-sigs { grid-template-columns: 1fr; }
+  .slip-sig-box { border-right: 0; border-bottom: 1px solid #0f172a; min-height: 100px; }
+  .slip-sig-box:last-child { border-bottom: 0; }
+}
+
+/* Print Rules */
+@media print {
+  header, .tabs, .filters, .actions, .no-print, footer, #toast {
+    display: none !important;
+  }
+  body {
+    background: white;
+    margin: 0;
+    padding: 0;
+  }
+  main {
+    margin: 0;
+    padding: 0;
+    max-width: none;
+  }
+  .modal {
+    position: static !important;
+    background: white !important;
+    padding: 0 !important;
+    display: block !important;
+  }
+  .modal-box {
+    box-shadow: none !important;
+    border: 0 !important;
+    padding: 0 !important;
+    max-height: none !important;
+    width: 100% !important;
+  }
+  .modal-head, .actions {
+    display: none !important;
+  }
+  #printSlipContent {
+    border: 1.5px solid #000 !important;
+    padding: 16px !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-container">
+    <div class="header-brand">
+      <img src="assets/mhc-logo.png" alt="May Harvest Corporation Logo" class="header-logo" onerror="this.style.display='none'">
+      <div class="header-titles">
+        <h1>MAY HARVEST CORPORATION</h1>
+        <p>Engineering & Maintenance • Department Job Order Request & Monitoring System</p>
+      </div>
+    </div>
+    <div class="header-meta">
+      <div class="live-clock" id="liveClock">🕒 Loading clock...</div>
+      <div class="sync-badge online" id="syncStatusBadge">
+        <span class="pulse-dot"></span>
+        <span id="syncStatusText">Cloud Live</span>
+      </div>
+      <button class="btn-sync-head" id="btnManualSync" title="Sync now with cloud server">
+        <i>🔄</i> Sync Now
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- Tabs Navigation -->
+  <div class="tabs no-print">
+    <button class="tab active" data-tab="request">
+      <span>📝</span> Department Request Form
+    </button>
+    <button class="tab" data-tab="engineering">
+      <span>⚙️</span> Engineering Dashboard
+    </button>
+    <button class="tab" data-tab="departmentDashboard">
+      <span>🏢</span> Department Dashboard
+    </button>
+  </div>
+
+  <!-- Tab 1: Department Request Form -->
+  <section id="request" class="panel">
+    <h2>Submit a Job Order Request</h2>
+    <p class="sub">Select your originating department and provide accurate information regarding the repair or maintenance requirement.</p>
+    
+    <div class="notice">
+      <span>ℹ️</span>
+      <div>
+        <strong>Automatic Job Order Numbering:</strong> Once submitted, a formalized tracking number (e.g., <code>MHC-JO-ADMIN-001</code>) is automatically generated and synchronized across all plant dashboards in real time.
+      </div>
+    </div>
+
+    <form id="requestForm">
+      <div class="grid">
+        <div>
+          <label for="department">Originating Department *</label>
+          <select id="department" required>
+            <option value="">-- Select department --</option>
+            <option value="Admin">Admin</option>
+            <option value="Basic-RKD">Basic-RKD</option>
+            <option value="Basic-Clean">Basic-Clean</option>
+            <option value="Further">Further</option>
+            <option value="Blast">Blast</option>
+            <option value="Warehouse">Warehouse</option>
+            <option value="Quality">Quality</option>
+            <option value="Utility">Utility</option>
+            <option value="Canteen">Canteen</option>
+            <option value="SMFI">SMFI</option>
+            <option value="Others">Others</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="requester">Requested By (Personnel Name) *</label>
+          <input id="requester" required placeholder="e.g. Juan Dela Cruz">
+        </div>
+
+        <div>
+          <label for="area">Specific Area / Location *</label>
+          <input id="area" required placeholder="e.g. Cold Storage 1 / Production Line 2">
+        </div>
+
+        <div>
+          <label for="equipment">Equipment / Asset Tag (Optional)</label>
+          <input id="equipment" placeholder="e.g. Blast Freezer Fan #3, Conveyor Belt A">
+        </div>
+
+        <div>
+          <label for="targetDate">Target Completion Date (Optional)</label>
+          <input id="targetDate" type="date">
+        </div>
+
+        <div>
+          <label for="priorityReq">Initial Urgency / Priority</label>
+          <select id="priorityReq">
+            <option value="Normal">Normal</option>
+            <option value="High">High</option>
+            <option value="Urgent">Urgent</option>
+            <option value="Low">Low</option>
+          </select>
+        </div>
+
+        <div class="full">
+          <label for="details">Detailed Description of Request / Problem *</label>
+          <textarea id="details" required placeholder="Describe the specific malfunction, repair requirements, or facility concern..."></textarea>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="success">
+          <span>📤</span> Submit Job Order Request
+        </button>
+        <button type="reset" class="secondary">
+          <span>🧹</span> Clear Form
+        </button>
+      </div>
+    </form>
+
+    <div id="submitMessage" style="margin-top: 16px;"></div>
+  </section>
+
+  <!-- Tab 2: Engineering Dashboard -->
+  <section id="engineering" class="panel" hidden>
+    <h2>Engineering Job Order Monitoring</h2>
+    <p class="sub">Centralized engineering management hub to receive, prioritize, track, and update all plant maintenance job orders.</p>
+
+    <!-- Stats summary -->
+    <div class="stats">
+      <div class="stat stat-total">
+        <span>Total Job Orders</span>
+        <strong id="totalCount">0</strong>
+      </div>
+      <div class="stat stat-pending">
+        <span>For Receiving / Pending</span>
+        <strong id="newCount">0</strong>
+      </div>
+      <div class="stat stat-ongoing">
+        <span>Ongoing Work</span>
+        <strong id="ongoingCount">0</strong>
+      </div>
+      <div class="stat stat-done">
+        <span>Completed / Done</span>
+        <strong id="doneCount">0</strong>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <h3 class="section-title">Job Order Status Distribution per Department</h3>
+    <div id="deptCharts" class="charts"></div>
+
+    <!-- Filters -->
+    <div class="filters no-print">
+      <div>
+        <label for="filterDept">Department</label>
+        <select id="filterDept">
+          <option value="">All Departments</option>
+          <option>Admin</option><option>Basic-RKD</option><option>Basic-Clean</option><option>Further</option><option>Blast</option><option>Warehouse</option><option>Quality</option><option>Utility</option><option>Canteen</option><option>SMFI</option><option>Others</option>
+        </select>
+      </div>
+      <div>
+        <label for="filterStatus">Status</label>
+        <select id="filterStatus">
+          <option value="">All Statuses</option>
+          <option value="Pending">Pending</option>
+          <option value="Ongoing">Ongoing</option>
+          <option value="Done">Done</option>
+          <option value="Cancelled">Cancelled</option>
+        </select>
+      </div>
+      <div>
+        <label for="filterPriority">Priority</label>
+        <select id="filterPriority">
+          <option value="">All Priorities</option>
+          <option value="Urgent">Urgent</option>
+          <option value="High">High</option>
+          <option value="Normal">Normal</option>
+          <option value="Low">Low</option>
+        </select>
+      </div>
+      <div>
+        <label for="searchText">Search</label>
+        <input id="searchText" placeholder="JO No., Requester, Area, Details...">
+      </div>
+    </div>
+
+    <!-- Actions toolbar -->
+    <div class="actions no-print" style="margin: 0 0 16px;">
+      <button class="secondary" id="exportCsv">
+        <span>📊</span> Export CSV
+      </button>
+      <button class="secondary" onclick="window.print()">
+        <span>🖨️</span> Print Dashboard
+      </button>
+      <button class="secondary" id="backup">
+        <span>💾</span> Download JSON Backup
+      </button>
+      <label class="secondary" style="padding: 11px 16px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; border: 1px solid #cbd5e1; background: #f1f5f9; color: #334155;">
+        <span>📥</span> Import Backup
+        <input id="restore" type="file" accept=".json" hidden>
+      </label>
+    </div>
+
+    <!-- Jobs Table -->
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Job Order No.</th>
+            <th>Department</th>
+            <th>Requested By</th>
+            <th>Area / Equipment</th>
+            <th>Details of Request</th>
+            <th>Date Requested</th>
+            <th>Received By & Date</th>
+            <th>Priority</th>
+            <th>Status</th>
+            <th class="no-print" style="text-align: center;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="jobsBody"></tbody>
+      </table>
+      <div id="emptyState" class="empty">No job order requests found matching the filter criteria.</div>
+    </div>
+  </section>
+
+  <!-- Tab 3: Department Dashboard -->
+  <section id="departmentDashboard" class="panel" hidden>
+    <h2>Department Job Order Dashboard</h2>
+    <p class="sub">Filter by originating department to review real-time progress, assigned technicians, and download official PDF Job Order slips.</p>
+
+    <div class="grid dept-select-row">
+      <div>
+        <label for="departmentView">Choose Your Department</label>
+        <select id="departmentView">
+          <option value="">-- Select department --</option>
+          <option>Admin</option><option>Basic-RKD</option><option>Basic-Clean</option><option>Further</option><option>Blast</option><option>Warehouse</option><option>Quality</option><option>Utility</option><option>Canteen</option><option>SMFI</option><option>Others</option>
+        </select>
+      </div>
+      <div class="small" id="departmentHint" style="padding-bottom: 10px;">Select a department to view submitted job orders.</div>
+    </div>
+
+    <div id="departmentSummary" class="stats" style="margin-top: 20px;" hidden>
+      <div class="stat stat-total"><span>Total Requests</span><strong id="deptTotal">0</strong></div>
+      <div class="stat stat-pending"><span>Pending</span><strong id="deptPending">0</strong></div>
+      <div class="stat stat-ongoing"><span>Ongoing</span><strong id="deptOngoing">0</strong></div>
+      <div class="stat stat-done"><span>Done</span><strong id="deptDone">0</strong></div>
+    </div>
+
+    <div id="deptChart" class="charts" style="max-width: 280px; margin-top: 16px;" hidden></div>
+
+    <div class="table-wrap" style="margin-top: 16px;">
+      <table>
+        <thead>
+          <tr>
+            <th>Job Order No.</th>
+            <th>Requested By</th>
+            <th>Area / Equipment</th>
+            <th>Details of Request</th>
+            <th>Date Requested</th>
+            <th>Date Received</th>
+            <th>Priority</th>
+            <th>Status</th>
+            <th class="no-print" style="text-align: center;">Print Slip</th>
+          </tr>
+        </thead>
+        <tbody id="departmentJobsBody"></tbody>
+      </table>
+      <div id="departmentEmpty" class="empty">Please select a department above to view its requests.</div>
+    </div>
+  </section>
+</main>
+
+<!-- Modal: Update Job Order (Engineering) -->
+<div class="modal" id="jobModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3>Update Job Order Status</h3>
+      <button class="secondary sm" id="closeModal">✕ Close</button>
+    </div>
+    <div id="modalJobNo" class="notice"></div>
+    <form id="updateForm">
+      <input type="hidden" id="editId">
+
+      <div style="margin-bottom: 14px;">
+        <label for="receivedBy">Engineering Personnel Who Received *</label>
+        <input id="receivedBy" placeholder="Full name of receiving technician / engineer">
+        <div class="small" style="margin-top: 4px;">Receiving timestamp is automatically recorded when saved.</div>
+      </div>
+
+      <div class="grid grid-2" style="margin-bottom: 14px;">
+        <div>
+          <label for="priority">Priority Level</label>
+          <select id="priority">
+            <option value="Normal">Normal</option>
+            <option value="High">High</option>
+            <option value="Urgent">Urgent</option>
+            <option value="Low">Low</option>
+          </select>
+        </div>
+        <div>
+          <label for="status">Job Status</label>
+          <select id="status">
+            <option value="Pending">Pending</option>
+            <option value="Ongoing">Ongoing</option>
+            <option value="Done">Done</option>
+            <option value="Cancelled">Cancelled</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 14px;">
+        <label for="actionTaken">Action Taken / Maintenance Work Done</label>
+        <textarea id="actionTaken" style="min-height: 80px;" placeholder="Describe inspection findings, repair steps executed, or ongoing plan..."></textarea>
+      </div>
+
+      <div style="margin-bottom: 14px;">
+        <label for="materialsUsed">Materials / Parts / Consumables Used</label>
+        <input id="materialsUsed" placeholder="e.g. 1pc Fan Motor 0.5HP, 2pcs Bearings 6204, R404A Freon">
+      </div>
+
+      <div style="margin-bottom: 14px;">
+        <label for="remarks">Engineering Remarks / Notes</label>
+        <input id="remarks" placeholder="Additional notes or recommendations">
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="success">
+          <span>💾</span> Save & Sync Update
+        </button>
+        <button type="button" class="secondary" id="btnCancelModal">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Official Job Order Slip (MHC-ENG-JO-01) Preview & PDF Export -->
+<div class="modal" id="slipModal">
+  <div class="modal-box large">
+    <div class="modal-head no-print">
+      <h3>Official Job Order Slip Preview (Doc Ref: MHC-ENG-JO-01)</h3>
+      <div style="display: flex; gap: 8px;">
+        <button class="success sm" id="btnDownloadSlipPdf">
+          <span>📥</span> Download PDF
+        </button>
+        <button class="secondary sm" id="btnPrintSlip">
+          <span>🖨️</span> Print Slip
+        </button>
+        <button class="secondary sm" id="closeSlipModal">✕ Close</button>
+      </div>
+    </div>
+
+    <!-- Printable Slip Container -->
+    <div id="printSlipContent">
+      <div class="slip-header">
+        <div class="slip-brand">
+          <img src="assets/mhc-logo.png" alt="MHC Logo" class="slip-logo" onerror="this.style.display='none'">
+          <div>
+            <h1 class="slip-company">MAY HARVEST CORPORATION</h1>
+            <div class="slip-dept">ENGINEERING & MAINTENANCE DEPARTMENT</div>
+            <div class="slip-title">JOB ORDER REQUEST & WORK AUTHORIZATION SLIP</div>
+          </div>
+        </div>
+        <div class="slip-doc-box">
+          <div><span>DOC CODE:</span> <strong>MHC-ENG-JO-01</strong></div>
+          <div><span>REVISION NO:</span> <strong>02</strong></div>
+          <div><span>EFFECTIVE DATE:</span> <strong>NOV 17, 2026</strong></div>
+          <div><span>STATUS:</span> <strong id="slipDocStatus">CONTROLLED</strong></div>
+        </div>
+      </div>
+
+      <!-- Slip Meta Bar -->
+      <div class="slip-meta-bar">
+        <div class="slip-meta-item">
+          <label>Job Order Number</label>
+          <div id="slipJobNo" style="font-size: 17px; color: #1e3a8a;">MHC-JO-000</div>
+        </div>
+        <div class="slip-meta-item">
+          <label>Date & Time Requested</label>
+          <div id="slipDateReq">--</div>
+        </div>
+        <div class="slip-meta-item">
+          <label>Priority Level</label>
+          <div><span id="slipPriorityBadge" class="pill">Normal</span></div>
+        </div>
+        <div class="slip-meta-item">
+          <label>Current Status</label>
+          <div><span id="slipStatusBadge" class="pill">Pending</span></div>
+        </div>
+      </div>
+
+      <!-- Section A: Request Details -->
+      <div class="slip-sec">
+        <div class="slip-sec-title">SECTION A: REQUEST DETAILS (Requesting Department)</div>
+        <div class="slip-grid-2">
+          <div class="slip-cell">
+            <label>Requesting Department</label>
+            <div class="val" id="slipDept">--</div>
+          </div>
+          <div class="slip-cell">
+            <label>Requested By (Originator)</label>
+            <div class="val" id="slipRequester">--</div>
+          </div>
+        </div>
+        <div class="slip-grid-2">
+          <div class="slip-cell">
+            <label>Specific Location / Area</label>
+            <div class="val" id="slipArea">--</div>
+          </div>
+          <div class="slip-cell">
+            <label>Equipment / Asset Tag</label>
+            <div class="val" id="slipEquipment">--</div>
+          </div>
+        </div>
+        <div class="slip-cell border-b-0">
+          <label>Details of Problem / Nature of Work Requested</label>
+          <div class="val" id="slipDetails" style="min-height: 50px; white-space: pre-line;">--</div>
+        </div>
+      </div>
+
+      <!-- Section B: Engineering Receiving & Assessment -->
+      <div class="slip-sec">
+        <div class="slip-sec-title">SECTION B: ENGINEERING RECEIVING & ACTION ASSESSMENT</div>
+        <div class="slip-grid-3">
+          <div class="slip-cell">
+            <label>Received By (Technician / Engineer)</label>
+            <div class="val" id="slipReceivedBy">Not yet received</div>
+          </div>
+          <div class="slip-cell">
+            <label>Date & Time Received</label>
+            <div class="val" id="slipReceivedAt">Pending receipt</div>
+          </div>
+          <div class="slip-cell">
+            <label>Target Completion Date</label>
+            <div class="val" id="slipTargetDate">As Scheduled</div>
+          </div>
+        </div>
+        <div class="slip-cell">
+          <label>Action Taken / Corrective Maintenance Done</label>
+          <div class="val" id="slipActionTaken" style="min-height: 40px; white-space: pre-line;">Pending engineering execution</div>
+        </div>
+        <div class="slip-grid-2 border-b-0">
+          <div class="slip-cell border-b-0">
+            <label>Materials / Spare Parts Used</label>
+            <div class="val" id="slipMaterials">None recorded</div>
+          </div>
+          <div class="slip-cell border-b-0">
+            <label>Engineering Remarks</label>
+            <div class="val" id="slipRemarks">None</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section C: Signatures & Authorizations -->
+      <div class="slip-sigs">
+        <div class="slip-sig-box">
+          <div class="slip-sig-title">1. REQUESTED BY</div>
+          <div class="slip-sig-space">
+            <span class="slip-sig-seal">Digitally Authenticated</span>
+          </div>
+          <div class="slip-sig-line">
+            <div class="slip-sig-name" id="sigRequesterName">--</div>
+            <div class="slip-sig-role">Requesting Department Personnel</div>
+          </div>
+        </div>
+
+        <div class="slip-sig-box">
+          <div class="slip-sig-title">2. RECEIVED & EXECUTED BY</div>
+          <div class="slip-sig-space">
+            <span class="slip-sig-seal" id="sigReceiverSeal">Engineering In-Charge</span>
+          </div>
+          <div class="slip-sig-line">
+            <div class="slip-sig-name" id="sigReceiverName">--</div>
+            <div class="slip-sig-role">Engineering Personnel / Technician</div>
+          </div>
+        </div>
+
+        <div class="slip-sig-box">
+          <div class="slip-sig-title">3. VERIFIED & APPROVED BY</div>
+          <div class="slip-sig-space">
+            <span class="slip-sig-seal">Official Controlled Copy</span>
+          </div>
+          <div class="slip-sig-line">
+            <div class="slip-sig-name">ENGR. HEAD / QA SUPERVISOR</div>
+            <div class="slip-sig-role">Engineering Head / Plant Management</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slip-footer-note">
+        <span>May Harvest Corporation • Quality & Engineering Controlled Form MHC-ENG-JO-01</span>
+        <span id="slipPrintTimestamp">Generated: Nov 17, 2026</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast notification element -->
+<div id="toast"><span>✓</span> <span id="toastMsg">Notification</span></div>
+
+<footer>
+  May Harvest Corporation • Engineering Job Order Request & Monitoring System • Cloud Live Sync Engine (v2.0)
+</footer>
+
+<script>
+const STORAGE_KEY = 'mhc_job_orders_v1';
+const API_URL = '/api/data';
+const SYNC_URL = '/api/sync';
+
+let jobs = [];
+let isCloudConnected = false;
+let currentSlipJob = null;
+
+const $ = id => document.getElementById(id);
+const slug = {
+  Admin: 'ADMIN',
+  'Basic-RKD': 'BASIC-RKD',
+  'Basic-Clean': 'BASIC-CLEAN',
+  Further: 'FURTHER',
+  Blast: 'BLAST',
+  Warehouse: 'WAREHOUSE',
+  Quality: 'QUALITY',
+  Utility: 'UTILITY',
+  Canteen: 'CANTEEN',
+  SMFI: 'SMFI',
+  Others: 'OTHERS'
+};
+
+const STATUS_COLORS = {
+  Pending: '#f59e0b',
+  Ongoing: '#2563eb',
+  Done: '#10b981',
+  Cancelled: '#94a3b8'
+};
+
+const DEPTS = ['Admin', 'Basic-RKD', 'Basic-Clean', 'Further', 'Blast', 'Warehouse', 'Quality', 'Utility', 'Canteen', 'SMFI', 'Others'];
+
+// Utility: Toast notification
+function toast(msg) {
+  const t = $('toast');
+  $('toastMsg').textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// Utility: Live Clock
+function updateClock() {
+  const now = new Date();
+  $('liveClock').textContent = '🕒 ' + now.toLocaleString('en-US', {
+    month: 'short',
+    day: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  });
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// Utility: Date/Time formatting
+function dateTimeNow() {
+  return new Date().toLocaleString('en-PH', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+// Next JO number generator
+function nextNumber(dept) {
+  const deptSlug = slug[dept] || dept.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const prefix = 'MHC-JO-' + deptSlug + '-';
+  const nums = jobs
+    .filter(j => j && j.jobNo && j.jobNo.startsWith(prefix))
+    .map(j => parseInt(j.jobNo.slice(prefix.length), 10) || 0);
+  const nextNum = Math.max(0, ...nums) + 1;
+  return prefix + String(nextNum).padStart(3, '0');
+}
+
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[c]));
+}
+
+// Cloud Status Badge Handler
+function setSyncStatus(state) {
+  const badge = $('syncStatusBadge');
+  const text = $('syncStatusText');
+  badge.className = 'sync-badge ' + state;
+  if (state === 'online') {
+    text.textContent = 'Cloud Live';
+    isCloudConnected = true;
+  } else if (state === 'syncing') {
+    text.textContent = 'Syncing...';
+  } else {
+    text.textContent = 'Offline / Local';
+    isCloudConnected = false;
+  }
+}
+
+// Initial Local Storage Load
+function loadLocalStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) jobs = parsed;
+    }
+  } catch (e) {
+    jobs = [];
+  }
+}
+
+// Cloud Fetch (Pull)
+async function fetchCloudData(silent = false) {
+  try {
+    const res = await fetch(API_URL, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if (data && Array.isArray(data.jobs)) {
+      // Merge cloud records with local records
+      const jobMap = new Map();
+      jobs.forEach(j => { if (j && (j.id || j.jobNo)) jobMap.set(j.id || j.jobNo, j); });
+      data.jobs.forEach(j => {
+        if (j && (j.id || j.jobNo)) {
+          const key = j.id || j.jobNo;
+          const local = jobMap.get(key);
+          jobMap.set(key, { ...local, ...j });
+        }
+      });
+      jobs = Array.from(jobMap.values());
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(jobs));
+      setSyncStatus('online');
+      if (!silent) toast('Synchronized with cloud server.');
+      render();
+      if ($('departmentDashboard') && !$('departmentDashboard').hidden) {
+        renderDepartmentDashboard();
+      }
+      return true;
+    }
+  } catch (err) {
+    setSyncStatus('offline');
+    return false;
+  }
+}
+
+// Cloud Push (Sync)
+async function syncToCloud(showToast = false) {
+  setSyncStatus('syncing');
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(jobs));
+  try {
+    const res = await fetch(SYNC_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jobs: jobs })
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const result = await res.json();
+    setSyncStatus('online');
+    if (showToast) toast('Job orders synced to cloud successfully.');
+  } catch (err) {
+    setSyncStatus('offline');
+    if (showToast) toast('Saved locally (Cloud server offline).');
+  }
+}
+
+// Tabs switching
+document.querySelectorAll('.tab').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x === b));
+    $('request').hidden = b.dataset.tab !== 'request';
+    $('departmentDashboard').hidden = b.dataset.tab !== 'departmentDashboard';
+    $('engineering').hidden = b.dataset.tab !== 'engineering';
+    if (b.dataset.tab === 'engineering') render();
+    if (b.dataset.tab === 'departmentDashboard') renderDepartmentDashboard();
+  });
+});
+
+// Manual Sync Button
+$('btnManualSync').addEventListener('click', async () => {
+  const btn = $('btnManualSync');
+  btn.classList.add('spin');
+  await fetchCloudData(false);
+  await syncToCloud(true);
+  setTimeout(() => btn.classList.remove('spin'), 800);
+});
+
+// Form Submission
+$('requestForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const dept = $('department').value;
+  const newJobNo = nextNumber(dept);
+  const job = {
+    id: crypto.randomUUID ? crypto.randomUUID() : 'jo_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+    jobNo: newJobNo,
+    department: dept,
+    requester: $('requester').value.trim(),
+    area: $('area').value.trim(),
+    equipment: $('equipment').value.trim() || 'General Facility',
+    targetDate: $('targetDate').value || '',
+    priority: $('priorityReq').value || 'Normal',
+    details: $('details').value.trim(),
+    requestedAt: dateTimeNow(),
+    receivedBy: '',
+    receivedAt: '',
+    actionTaken: '',
+    materialsUsed: '',
+    remarks: '',
+    status: 'Pending'
+  };
+
+  jobs.unshift(job);
+  await syncToCloud(false);
+  $('requestForm').reset();
+
+  $('submitMessage').innerHTML = `
+    <div style="background: #ecfdf5; border: 1.5px solid #a7f3d0; border-radius: 10px; padding: 16px; color: #065f46;">
+      <div style="font-weight: 800; font-size: 16px; margin-bottom: 4px;">✓ Job Order Submitted Successfully!</div>
+      <div style="font-size: 13.5px; margin-bottom: 12px;">Your Job Order Tracking Number is <strong>${job.jobNo}</strong>. It has been registered on the Engineering Board.</div>
+      <button type="button" class="success sm" onclick="openSlipModal('${job.id}')">
+        <span>📄</span> View & Download Job Order Slip (PDF)
+      </button>
+    </div>
+  `;
+  toast('Job Order ' + job.jobNo + ' created & synced!');
+});
+
+// Pie / Donut Charts
+function pieCard(title, list) {
+  const counts = { Pending: 0, Ongoing: 0, Done: 0, Cancelled: 0 };
+  list.forEach(j => { if (counts[j.status] !== undefined) counts[j.status]++; });
+  const total = Object.values(counts).reduce((a, b) => a + b, 0);
+  const cx = 70, cy = 70, r = 62;
+  let svg = '';
+
+  if (!total) {
+    svg = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="2"/>
+           <text x="${cx}" y="${cy+4}" text-anchor="middle" font-size="11" font-weight="600" fill="#94a3b8">No records</text>`;
+  } else {
+    const used = Object.keys(counts).filter(k => counts[k] > 0);
+    if (used.length === 1) {
+      svg = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${STATUS_COLORS[used[0]]}"/>`;
+    } else {
+      let a = -Math.PI / 2;
+      used.forEach(k => {
+        const ang = (counts[k] / total) * 2 * Math.PI;
+        const x1 = cx + r * Math.cos(a), y1 = cy + r * Math.sin(a);
+        a += ang;
+        const x2 = cx + r * Math.cos(a), y2 = cy + r * Math.sin(a);
+        svg += `<path d="M${cx} ${cy} L${x1.toFixed(2)} ${y1.toFixed(2)} A${r} ${r} 0 ${ang > Math.PI ? 1 : 0} 1 ${x2.toFixed(2)} ${y2.toFixed(2)} Z" fill="${STATUS_COLORS[k]}" stroke="white" stroke-width="2"/>`;
+      });
+    }
+
+    // Percentage labels
+    let b = -Math.PI / 2;
+    used.forEach(k => {
+      const ang = (counts[k] / total) * 2 * Math.PI;
+      const m = b + ang / 2;
+      b += ang;
+      const pct = Math.round((counts[k] / total) * 100);
+      if (pct >= 8) {
+        svg += `<text x="${(cx + r * 0.62 * Math.cos(m)).toFixed(1)}" y="${(cy + r * 0.62 * Math.sin(m) + 4).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="800" fill="white">${pct}%</text>`;
+      }
+    });
+  }
+
+  const legend = Object.keys(counts).map(k => `<span><i style="background:${STATUS_COLORS[k]}"></i>${k}: <b>${counts[k]}</b></span>`).join('');
+  return `<div class="chart-card"><h4>${esc(title)} <span class="small">(${total})</span></h4><svg viewBox="0 0 140 140" role="img">${svg}</svg><div class="legend">${legend}</div></div>`;
+}
+
+function renderCharts() {
+  $('deptCharts').innerHTML = pieCard('All Departments', jobs) + DEPTS.map(d => pieCard(d, jobs.filter(j => j.department === d))).join('');
+}
+
+// Department Dashboard Render
+$('departmentView').addEventListener('change', renderDepartmentDashboard);
+
+function renderDepartmentDashboard() {
+  const dept = $('departmentView').value;
+  const summary = $('departmentSummary');
+  if (!dept) {
+    summary.hidden = true;
+    $('deptChart').hidden = true;
+    $('departmentHint').textContent = 'Please choose a department to view submitted job orders.';
+    $('departmentJobsBody').innerHTML = '';
+    $('departmentEmpty').textContent = 'Please select a department above to view its requests.';
+    $('departmentEmpty').style.display = 'block';
+    return;
+  }
+
+  const own = jobs.filter(j => j.department === dept);
+  summary.hidden = false;
+  $('deptChart').innerHTML = pieCard(dept, own);
+  $('deptChart').hidden = false;
+  $('departmentHint').textContent = 'Showing ' + own.length + ' request(s) submitted by ' + dept + '.';
+  $('deptTotal').textContent = own.length;
+  $('deptPending').textContent = own.filter(j => j.status === 'Pending').length;
+  $('deptOngoing').textContent = own.filter(j => j.status === 'Ongoing').length;
+  $('deptDone').textContent = own.filter(j => j.status === 'Done').length;
+
+  $('departmentJobsBody').innerHTML = own.map(j => `
+    <tr>
+      <td><b style="color: #1e3a8a;">${esc(j.jobNo)}</b></td>
+      <td>${esc(j.requester)}</td>
+      <td><b>${esc(j.area)}</b>${j.equipment ? '<br><span class="small">🏷️ ' + esc(j.equipment) + '</span>' : ''}</td>
+      <td>${esc(j.details)}</td>
+      <td>${esc(j.requestedAt)}</td>
+      <td>${esc(j.receivedAt) || '<span class="small" style="color: #94a3b8;">Pending Receipt</span>'}</td>
+      <td><span class="pill p-${esc(j.priority)}">${esc(j.priority)}</span></td>
+      <td><span class="pill p-${esc(j.status)}">${esc(j.status)}</span></td>
+      <td class="no-print" style="text-align: center;">
+        <button class="secondary sm" onclick="openSlipModal('${j.id}')">
+          <span>📄</span> Slip (PDF)
+        </button>
+      </td>
+    </tr>
+  `).join('');
+
+  $('departmentEmpty').style.display = own.length ? 'none' : 'block';
+  $('departmentEmpty').textContent = 'No requests submitted by ' + dept + ' yet.';
+}
+
+// Main Engineering Dashboard Render
+function render() {
+  const dept = $('filterDept').value;
+  const status = $('filterStatus').value;
+  const priority = $('filterPriority').value;
+  const q = $('searchText').value.toLowerCase().trim();
+
+  $('totalCount').textContent = jobs.length;
+  $('newCount').textContent = jobs.filter(j => (!j.receivedBy || j.status === 'Pending') && j.status !== 'Cancelled').length;
+  $('ongoingCount').textContent = jobs.filter(j => j.status === 'Ongoing').length;
+  $('doneCount').textContent = jobs.filter(j => j.status === 'Done').length;
+
+  const filtered = jobs.filter(j => {
+    return (!dept || j.department === dept) &&
+           (!status || j.status === status) &&
+           (!priority || j.priority === priority) &&
+           (!q || [j.jobNo, j.department, j.requester, j.area, j.equipment, j.details, j.receivedBy, j.actionTaken].join(' ').toLowerCase().includes(q));
+  });
+
+  $('jobsBody').innerHTML = filtered.map(j => `
+    <tr>
+      <td>
+        <b style="color: #1e3a8a;">${esc(j.jobNo)}</b>
+      </td>
+      <td><span class="pill" style="font-weight: 700;">${esc(j.department)}</span></td>
+      <td>${esc(j.requester)}</td>
+      <td>
+        <b>${esc(j.area)}</b>
+        ${j.equipment ? '<br><span class="small" style="color:#0284c7;">🏷️ ' + esc(j.equipment) + '</span>' : ''}
+      </td>
+      <td style="max-width: 280px; word-break: break-word;">
+        ${esc(j.details)}
+        ${j.actionTaken ? '<br><span class="small" style="color:#059669;"><b>Action:</b> ' + esc(j.actionTaken) + '</span>' : ''}
+      </td>
+      <td style="white-space: nowrap;">${esc(j.requestedAt)}</td>
+      <td>
+        ${j.receivedBy ? '<b>' + esc(j.receivedBy) + '</b><br><span class="small">' + esc(j.receivedAt) + '</span>' : '<span class="small" style="color: #94a3b8;">Pending Receipt</span>'}
+      </td>
+      <td><span class="pill p-${esc(j.priority)}">${esc(j.priority)}</span></td>
+      <td><span class="pill p-${esc(j.status)}">${esc(j.status)}</span></td>
+      <td class="no-print" style="white-space: nowrap; text-align: center;">
+        <button class="secondary sm" onclick="openSlipModal('${j.id}')" title="Print or Download PDF Slip">
+          <span>📄</span> Slip
+        </button>
+        <button class="secondary sm" onclick="editJob('${j.id}')" title="Update status and receiving personnel">
+          <span>✏️</span> Edit
+        </button>
+        <button class="danger sm" onclick="deleteJob('${j.id}')" title="Delete record">
+          <span>🗑️</span>
+        </button>
+      </td>
+    </tr>
+  `).join('');
+
+  $('emptyState').style.display = filtered.length ? 'none' : 'block';
+  renderCharts();
+}
+
+['filterDept', 'filterStatus', 'filterPriority', 'searchText'].forEach(id => {
+  $(id).addEventListener('input', render);
+});
+
+// Update Modal Handlers
+window.editJob = id => {
+  const j = jobs.find(x => x.id === id);
+  if (!j) return;
+  $('editId').value = id;
+  $('modalJobNo').innerHTML = `<strong>${esc(j.jobNo)}</strong> • Department: <b>${esc(j.department)}</b> • Requested by: <b>${esc(j.requester)}</b>`;
+  $('receivedBy').value = j.receivedBy || '';
+  $('priority').value = j.priority || 'Normal';
+  $('status').value = j.status || 'Pending';
+  $('actionTaken').value = j.actionTaken || '';
+  $('materialsUsed').value = j.materialsUsed || '';
+  $('remarks').value = j.remarks || '';
+  $('jobModal').classList.add('show');
+};
+
+window.deleteJob = async id => {
+  const j = jobs.find(x => x.id === id);
+  if (!j) return;
+  if (confirm('Are you sure you want to delete ' + j.jobNo + ' (' + j.department + ')? This action cannot be undone.')) {
+    jobs = jobs.filter(x => x.id !== id);
+    await syncToCloud(true);
+    render();
+    if ($('departmentDashboard') && !$('departmentDashboard').hidden) {
+      renderDepartmentDashboard();
+    }
+  }
+};
+
+function closeModal() {
+  $('jobModal').classList.remove('show');
+}
+$('closeModal').addEventListener('click', closeModal);
+$('btnCancelModal').addEventListener('click', closeModal);
+$('jobModal').addEventListener('click', e => { if (e.target === $('jobModal')) closeModal(); });
+
+$('updateForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const j = jobs.find(x => x.id === $('editId').value);
+  if (!j) return;
+  const receiver = $('receivedBy').value.trim();
+  if (receiver && !j.receivedAt) {
+    j.receivedAt = dateTimeNow();
+  }
+  if (!receiver) {
+    j.receivedAt = '';
+  }
+  j.receivedBy = receiver;
+  j.priority = $('priority').value;
+  j.status = $('status').value;
+  j.actionTaken = $('actionTaken').value.trim();
+  j.materialsUsed = $('materialsUsed').value.trim();
+  j.remarks = $('remarks').value.trim();
+
+  await syncToCloud(true);
+  closeModal();
+  render();
+  if ($('departmentDashboard') && !$('departmentDashboard').hidden) {
+    renderDepartmentDashboard();
+  }
+});
+
+// Official Job Order Slip (MHC-ENG-JO-01) Modal & PDF Export
+window.openSlipModal = id => {
+  const j = jobs.find(x => x.id === id);
+  if (!j) return;
+  currentSlipJob = j;
+
+  $('slipJobNo').textContent = j.jobNo;
+  $('slipDateReq').textContent = j.requestedAt || '--';
+
+  const pb = $('slipPriorityBadge');
+  pb.className = 'pill p-' + (j.priority || 'Normal');
+  pb.textContent = j.priority || 'Normal';
+
+  const sb = $('slipStatusBadge');
+  sb.className = 'pill p-' + (j.status || 'Pending');
+  sb.textContent = j.status || 'Pending';
+
+  $('slipDept').textContent = j.department || '--';
+  $('slipRequester').textContent = j.requester || '--';
+  $('slipArea').textContent = j.area || '--';
+  $('slipEquipment').textContent = j.equipment || 'General Facility / Utility';
+  $('slipDetails').textContent = j.details || '--';
+
+  $('slipReceivedBy').textContent = j.receivedBy || 'Not yet received';
+  $('slipReceivedAt').textContent = j.receivedAt || 'Pending receipt';
+  $('slipTargetDate').textContent = j.targetDate || 'As scheduled / standard turn-around';
+  $('slipActionTaken').textContent = j.actionTaken || (j.status === 'Done' ? 'Work completed and verified operational.' : 'Pending engineering execution / assessment.');
+  $('slipMaterials').textContent = j.materialsUsed || 'None recorded';
+  $('slipRemarks').textContent = j.remarks || 'None';
+
+  $('sigRequesterName').textContent = j.requester || 'REQUESTING PERSONNEL';
+  $('sigReceiverName').textContent = j.receivedBy || 'ENGINEERING IN-CHARGE';
+
+  if (j.status === 'Done') {
+    $('sigReceiverSeal').textContent = 'Work Completed';
+    $('sigReceiverSeal').style.background = '#dcfce7';
+    $('sigReceiverSeal').style.color = '#15803d';
+    $('sigReceiverSeal').style.borderColor = '#16a34a';
+  } else if (j.receivedBy) {
+    $('sigReceiverSeal').textContent = 'In-Progress / Received';
+    $('sigReceiverSeal').style.background = '#dbeafe';
+    $('sigReceiverSeal').style.color = '#1e40af';
+    $('sigReceiverSeal').style.borderColor = '#3b82f6';
+  } else {
+    $('sigReceiverSeal').textContent = 'Pending Receiving';
+    $('sigReceiverSeal').style.background = '#fef3c7';
+    $('sigReceiverSeal').style.color = '#92400e';
+    $('sigReceiverSeal').style.borderColor = '#d97706';
+  }
+
+  $('slipPrintTimestamp').textContent = 'Generated: ' + new Date().toLocaleString('en-US', {
+    month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true
+  });
+
+  $('slipModal').classList.add('show');
+};
+
+function closeSlipModal() {
+  $('slipModal').classList.remove('show');
+  currentSlipJob = null;
+}
+$('closeSlipModal').addEventListener('click', closeSlipModal);
+$('slipModal').addEventListener('click', e => { if (e.target === $('slipModal')) closeSlipModal(); });
+
+// Print Slip
+$('btnPrintSlip').addEventListener('click', () => {
+  window.print();
+});
+
+// Download PDF using html2pdf
+$('btnDownloadSlipPdf').addEventListener('click', () => {
+  if (!currentSlipJob) return;
+  const element = $('printSlipContent');
+  const filename = 'MHC_JobOrder_' + currentSlipJob.jobNo.replace(/[^a-zA-Z0-9-_]/g, '_') + '.pdf';
+
+  toast('Generating high-resolution Job Order PDF...');
+
+  if (window.html2pdf) {
+    const opt = {
+      margin: [10, 10, 10, 10],
+      filename: filename,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, logging: false },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(element).save().then(() => {
+      toast('Job Order PDF downloaded successfully!');
+    }).catch(err => {
+      console.warn('html2pdf failed, falling back to window.print():', err);
+      window.print();
+    });
+  } else {
+    window.print();
+  }
+});
+
+// Export CSV
+$('exportCsv').addEventListener('click', () => {
+  const cols = ['jobNo', 'department', 'requester', 'area', 'equipment', 'details', 'requestedAt', 'receivedBy', 'receivedAt', 'targetDate', 'priority', 'status', 'actionTaken', 'materialsUsed', 'remarks'];
+  const headers = ['Job Order No', 'Department', 'Requested By', 'Area', 'Equipment', 'Details of Request', 'Date Requested', 'Received By', 'Date Received', 'Target Date', 'Priority', 'Status', 'Action Taken', 'Materials Used', 'Remarks'];
+  const csv = [
+    headers.join(','),
+    ...jobs.map(j => cols.map(k => '"' + String(j[k] ?? '').replace(/"/g, '""') + '"').join(','))
+  ].join('\r\n');
+  downloadFile(new Blob([csv], { type: 'text/csv;charset=utf-8;' }), 'MHC_Job_Order_Master_Export.csv');
+  toast('CSV export downloaded.');
+});
+
+// Backup JSON
+$('backup').addEventListener('click', () => {
+  downloadFile(new Blob([JSON.stringify({ jobs: jobs, exportDate: new Date().toISOString() }, null, 2)], { type: 'application/json' }), 'MHC_Job_Order_Backup.json');
+  toast('JSON backup downloaded.');
+});
+
+function downloadFile(blob, name) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// Restore JSON
+$('restore').addEventListener('change', async e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  try {
+    const parsed = JSON.parse(await f.text());
+    const importedJobs = Array.isArray(parsed.jobs) ? parsed.jobs : (Array.isArray(parsed) ? parsed : null);
+    if (!importedJobs || !importedJobs.every(j => j.jobNo && j.department)) {
+      throw new Error('Invalid format');
+    }
+    if (confirm('Import ' + importedJobs.length + ' job orders and merge with current records?')) {
+      const map = new Map();
+      jobs.forEach(j => { if (j && (j.id || j.jobNo)) map.set(j.id || j.jobNo, j); });
+      importedJobs.forEach(j => { if (j && (j.id || j.jobNo)) map.set(j.id || j.jobNo, j); });
+      jobs = Array.from(map.values());
+      await syncToCloud(true);
+      render();
+      alert('Backup imported and synchronized successfully.');
+    }
+  } catch (err) {
+    alert('Invalid backup file. Please select a valid MHC Job Order JSON backup.');
+  }
+  e.target.value = '';
+});
+
+// Periodic Cloud Background Sync (every 15 seconds)
+setInterval(() => {
+  fetchCloudData(true);
+}, 15000);
+
+// Startup Initialization
+loadLocalStorage();
+render();
+fetchCloudData(false);
+</script>
+</body>
+</html>

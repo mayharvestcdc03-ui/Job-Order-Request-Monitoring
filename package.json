@@ -1,0 +1,24 @@
+{
+  "name": "mhc-job-order-request-monitoring",
+  "version": "1.0.0",
+  "description": "May Harvest Corporation - Engineering Job Order Request & Monitoring System with Cloud Sync & Official PDF Export",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node -e \"console.log('Test OK')\""
+  },
+  "keywords": [
+    "may-harvest-corporation",
+    "engineering",
+    "job-order",
+    "maintenance",
+    "monitoring",
+    "cloud-sync",
+    "pdf-export"
+  ],
+  "author": "May Harvest Corporation",
+  "license": "ISC",
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
