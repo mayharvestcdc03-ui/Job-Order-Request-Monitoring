@@ -1301,7 +1301,10 @@ footer {
             </div>
             <div class="portal-form-group">
               <label>Password</label>
-              <input id="portalEngrPass" type="password" placeholder="••••••••" required autocomplete="current-password">
+              <div style="position:relative; display:flex; align-items:center;">
+                <input id="portalEngrPass" type="password" placeholder="••••••••" required autocomplete="current-password" style="padding-right:38px;">
+                <button type="button" id="btnToggleEngrPass" style="position:absolute; right:6px; background:none; border:none; color:#94a3b8; padding:4px 6px; cursor:pointer; font-size:15px; box-shadow:none; line-height:1;" title="Ipakita / Itago ang Password">👁️</button>
+              </div>
             </div>
             <button type="submit" class="portal-btn portal-btn-blue">
               <span>🔓</span> Login sa Engineering →
@@ -1328,7 +1331,10 @@ footer {
             </div>
             <div class="portal-form-group">
               <label>Password</label>
-              <input id="portalDeptPass" type="password" placeholder="••••••••" required autocomplete="current-password">
+              <div style="position:relative; display:flex; align-items:center;">
+                <input id="portalDeptPass" type="password" placeholder="••••••••" required autocomplete="current-password" style="padding-right:38px;">
+                <button type="button" id="btnToggleDeptPass" style="position:absolute; right:6px; background:none; border:none; color:#94a3b8; padding:4px 6px; cursor:pointer; font-size:15px; box-shadow:none; line-height:1;" title="Ipakita / Itago ang Password">👁️</button>
+              </div>
             </div>
             <button type="submit" class="portal-btn portal-btn-amber">
               <span>🔑</span> Login sa Department →
@@ -1693,8 +1699,9 @@ footer {
     <div id="deptPinAlert" style="display:none; padding:8px 12px; border-radius:8px; margin-bottom:12px; font-size:12.5px; font-weight:700; background:#fee2e2; color:#991b1b; border:1px solid #fca5a5;"></div>
 
     <form id="deptPinForm">
-      <div class="pin-input-box">
-        <input id="deptPinInput" class="pin-input" type="password" maxlength="4" pattern="[0-9]*" inputmode="numeric" placeholder="••••" required autofocus>
+      <div class="pin-input-box" style="position:relative; display:inline-flex; align-items:center; justify-content:center;">
+        <input id="deptPinInput" class="pin-input" type="password" maxlength="4" pattern="[0-9]*" inputmode="numeric" placeholder="••••" required autofocus style="padding-right:45px !important;">
+        <button type="button" id="btnToggleDeptPin" style="position:absolute; right:10px; background:none; border:none; color:#64748b; padding:4px 6px; cursor:pointer; font-size:18px; box-shadow:none; line-height:1;" title="Ipakita / Itago ang PIN">👁️</button>
       </div>
       <div class="actions" style="justify-content: center; gap: 10px;">
         <button type="submit" class="success">
@@ -2503,11 +2510,24 @@ $('btnCancelLogin').addEventListener('click', () => {
   switchTab('request');
 });
 
-// Toggle password visibility
-$('btnToggleShowPass').addEventListener('click', () => {
-  const pInput = $('loginPassword');
-  pInput.type = pInput.type === 'password' ? 'text' : 'password';
-});
+// Toggle password visibility helper
+function setupPasswordToggle(btnId, inputId) {
+  const btn = $(btnId);
+  const input = $(inputId);
+  if (btn && input) {
+    btn.addEventListener('click', () => {
+      const isPass = input.type === 'password';
+      input.type = isPass ? 'text' : 'password';
+      btn.textContent = isPass ? '🙈' : '👁️';
+      btn.title = isPass ? 'Itago ang Password' : 'Ipakita ang Password';
+    });
+  }
+}
+
+setupPasswordToggle('btnToggleShowPass', 'loginPassword');
+setupPasswordToggle('btnToggleEngrPass', 'portalEngrPass');
+setupPasswordToggle('btnToggleDeptPass', 'portalDeptPass');
+setupPasswordToggle('btnToggleDeptPin', 'deptPinInput');
 
 $('loginForm').addEventListener('submit', e => {
   e.preventDefault();
