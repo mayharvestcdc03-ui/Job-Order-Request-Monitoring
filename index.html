@@ -158,6 +158,25 @@ header {
 .btn-sync-head.spin i {
   animation: spin 1s linear infinite;
 }
+.btn-reset-head {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.45);
+  color: #fca5a5;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+.btn-reset-head:hover {
+  background: rgba(239, 68, 68, 0.4);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
 @keyframes spin { 100% { transform: rotate(360deg); } }
 
 /* Main Container */
@@ -1331,7 +1350,10 @@ footer {
 
     <div class="portal-footer">
       <div>🕒 May Harvest Corporation • Quality & Engineering System</div>
-      <div>Cloud Sync: <span style="color:#34d399; font-weight:700;">● Active Server</span></div>
+      <div style="display:flex; align-items:center; gap:14px;">
+        <button type="button" id="btnPortalReset" style="background:none; border:none; color:#f87171; font-size:11.5px; text-decoration:underline; cursor:pointer; font-weight:600;" title="I-reset o linisin ang records ng system">🗑️ Reset System Data</button>
+        <div>Cloud Sync: <span style="color:#34d399; font-weight:700;">● Active Server</span></div>
+      </div>
     </div>
   </div>
 </div>
@@ -1354,6 +1376,9 @@ footer {
       </div>
       <button class="btn-sync-head" id="btnManualSync" title="Sync now with cloud server">
         <i>🔄</i> Sync Now
+      </button>
+      <button class="btn-reset-head" id="btnQuickReset" title="I-reset ang system o mga Job Order kung kinakailangan">
+        <i>🗑️</i> Reset System
       </button>
       <div id="headerAuthContainer" style="display:flex; align-items:center; gap:8px;">
         <div class="auth-user-badge" id="authUserBadge">
@@ -1523,7 +1548,10 @@ footer {
       </div>
       <div>
         <label for="searchText">Search</label>
-        <input id="searchText" placeholder="JO No., Requester, Area, Details...">
+        <div style="display:flex; gap:6px;">
+          <input id="searchText" placeholder="JO No., Requester, Area, Details..." style="flex:1;">
+          <button type="button" class="secondary sm" id="btnResetFilters" style="white-space:nowrap; padding:6px 10px;" title="I-clear ang search at filters">↺ Reset</button>
+        </div>
       </div>
     </div>
 
@@ -1542,6 +1570,9 @@ footer {
         <span>📥</span> Import Backup
         <input id="restore" type="file" accept=".json" hidden>
       </label>
+      <button class="danger" id="btnResetBoard" title="I-reset o burahin ang mga Job Order records para makapag-fresh start">
+        <span>🗑️</span> Reset Records
+      </button>
     </div>
 
     <!-- Jobs Table -->
@@ -1920,6 +1951,73 @@ footer {
         <span>May Harvest Corporation • Quality & Engineering Controlled Form MHC-ENG-JO-01</span>
         <span id="slipPrintTimestamp">Generated: Nov 17, 2026</span>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: System & Data Reset -->
+<div class="modal" id="resetModal">
+  <div class="modal-box" style="max-width: 520px;">
+    <div class="modal-head">
+      <h3 style="display:flex; align-items:center; gap:8px; color:#b91c1c;">
+        <span>🗑️</span> System & Data Reset
+      </h3>
+      <button class="secondary sm" id="closeResetModal">✕ Close</button>
+    </div>
+
+    <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:14px; margin-bottom:16px; color:#991b1b; font-size:13px; line-height:1.5;">
+      <strong>⚠️ Paalala / Notice:</strong> Gamitin ang tool na ito kung nais i-reset o simulan muli ang data ng Job Order (hal. pagkatapos ng system testing o simula ng bagong buwan/cycle).
+    </div>
+
+    <div style="margin-bottom:16px;">
+      <label style="font-weight:700; font-size:12px; color:#334155; text-transform:uppercase; margin-bottom:8px; display:block;">Piliin ang Aaksyunan:</label>
+      
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <label style="display:flex; align-items:flex-start; gap:10px; padding:12px; border:1.5px solid #cbd5e1; border-radius:10px; cursor:pointer; background:#f8fafc;" id="lblResetAll">
+          <input type="radio" name="resetOption" value="all" checked style="margin-top:3px;">
+          <div>
+            <strong style="color:#0f172a; font-size:13.5px; display:block;">I-reset Lahat ng Job Order Records (0 Records / Fresh Start)</strong>
+            <span style="font-size:12px; color:#64748b;">Burahin ang lahat ng naitalang Job Order sa server at lokal. Kusa munang magda-download ng safety backup JSON file para may kopya ka.</span>
+          </div>
+        </label>
+
+        <label style="display:flex; align-items:flex-start; gap:10px; padding:12px; border:1.5px solid #cbd5e1; border-radius:10px; cursor:pointer; background:#f8fafc;">
+          <input type="radio" name="resetOption" value="filters" style="margin-top:3px;">
+          <div>
+            <strong style="color:#0f172a; font-size:13.5px; display:block;">I-reset lamang ang Search & Filters</strong>
+            <span style="font-size:12px; color:#64748b;">Ibalik sa "All Departments" at "All Statuses", linisin ang search box at form inputs (mananatili ang mga Job Orders).</span>
+          </div>
+        </label>
+
+        <label style="display:flex; align-items:flex-start; gap:10px; padding:12px; border:1.5px solid #cbd5e1; border-radius:10px; cursor:pointer; background:#f8fafc;">
+          <input type="radio" name="resetOption" value="session" style="margin-top:3px;">
+          <div>
+            <strong style="color:#0f172a; font-size:13.5px; display:block;">I-reset ang Login Session</strong>
+            <span style="font-size:12px; color:#64748b;">I-lock muli ang mga pinasok na departamento at bumalik sa Portal Gatekeeper landing screen.</span>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <!-- Security confirmation box for resetting records -->
+    <div id="resetSecurityBox" style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:10px; padding:14px; margin-bottom:16px;">
+      <label for="resetConfirmInput" style="font-size:12px; font-weight:700; color:#1e293b; display:block; margin-bottom:6px;">
+        Security PIN o i-type ang "RESET" upang kumpirmahin: *
+      </label>
+      <div style="display:flex; gap:8px;">
+        <input id="resetConfirmInput" placeholder='Ilagay ang 8888 o "RESET"' style="flex:1; font-weight:700;">
+        <button type="button" class="secondary sm" onclick="fillResetAdmin()" title="1-Click para sa Admin">
+          ⚡ 8888
+        </button>
+      </div>
+      <div id="resetAlert" style="display:none; color:#dc2626; font-size:12px; font-weight:700; margin-top:6px;"></div>
+    </div>
+
+    <div class="actions" style="margin-top:0; justify-content:flex-end; gap:8px;">
+      <button type="button" class="secondary" id="btnCancelReset">Kanselahin</button>
+      <button type="button" class="danger" id="btnExecuteReset">
+        <span>🗑️</span> Ipatupad ang Reset
+      </button>
     </div>
   </div>
 </div>
@@ -2345,14 +2443,14 @@ async function fetchCloudData(silent = false) {
 }
 
 // Cloud Push (Sync)
-async function syncToCloud(showToast = false) {
+async function syncToCloud(showToast = false, replace = false) {
   setSyncStatus('syncing');
   localStorage.setItem(STORAGE_KEY, JSON.stringify(jobs));
   try {
     const res = await fetch(SYNC_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ jobs: jobs })
+      body: JSON.stringify({ jobs: jobs, replace: replace })
     });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const result = await res.json();
@@ -2781,7 +2879,10 @@ window.deleteJob = async id => {
   if (!j) return;
   if (confirm('Are you sure you want to delete ' + j.jobNo + ' (' + j.department + ')? This action cannot be undone.')) {
     jobs = jobs.filter(x => x.id !== id);
-    await syncToCloud(true);
+    try {
+      await fetch('/api/jobs/' + encodeURIComponent(id), { method: 'DELETE' });
+    } catch(e) {}
+    await syncToCloud(true, true);
     render();
     if ($('departmentDashboard') && !$('departmentDashboard').hidden) {
       renderDepartmentDashboard();
@@ -2968,6 +3069,145 @@ $('restore').addEventListener('change', async e => {
     alert('Invalid backup file. Please select a valid MHC Job Order JSON backup.');
   }
   e.target.value = '';
+});
+
+// =========================================================================
+// SYSTEM & DATA RESET LOGIC
+// =========================================================================
+function openResetModal() {
+  $('resetConfirmInput').value = '';
+  $('resetAlert').style.display = 'none';
+  const radioAll = document.querySelector('input[name="resetOption"][value="all"]');
+  if (radioAll) radioAll.checked = true;
+  updateResetOptionVisibility();
+  $('resetModal').classList.add('show');
+  setTimeout(() => $('resetConfirmInput').focus(), 150);
+}
+
+function closeResetModal() {
+  $('resetModal').classList.remove('show');
+}
+
+function updateResetOptionVisibility() {
+  const selected = document.querySelector('input[name="resetOption"]:checked')?.value || 'all';
+  const secBox = $('resetSecurityBox');
+  if (secBox) {
+    secBox.style.display = selected === 'all' ? 'block' : 'none';
+  }
+}
+
+document.querySelectorAll('input[name="resetOption"]').forEach(r => {
+  r.addEventListener('change', updateResetOptionVisibility);
+});
+
+window.fillResetAdmin = function() {
+  $('resetConfirmInput').value = '8888';
+  if ($('resetAlert')) $('resetAlert').style.display = 'none';
+};
+
+$('closeResetModal').addEventListener('click', closeResetModal);
+$('btnCancelReset').addEventListener('click', closeResetModal);
+$('resetModal').addEventListener('click', e => { if (e.target === $('resetModal')) closeResetModal(); });
+
+if ($('btnQuickReset')) $('btnQuickReset').addEventListener('click', openResetModal);
+if ($('btnResetBoard')) $('btnResetBoard').addEventListener('click', openResetModal);
+if ($('btnPortalReset')) $('btnPortalReset').addEventListener('click', openResetModal);
+
+// Clear / Reset Filters
+function resetFilters() {
+  $('filterDept').value = '';
+  $('filterStatus').value = '';
+  $('filterPriority').value = '';
+  $('searchText').value = '';
+  render();
+  toast('Filters and search reset.');
+}
+if ($('btnResetFilters')) $('btnResetFilters').addEventListener('click', resetFilters);
+
+// Execute Reset Action
+$('btnExecuteReset').addEventListener('click', async () => {
+  const selected = document.querySelector('input[name="resetOption"]:checked')?.value || 'all';
+  const alertEl = $('resetAlert');
+
+  if (selected === 'filters') {
+    resetFilters();
+    $('requestForm').reset();
+    closeResetModal();
+    toast('✓ Na-reset na ang mga filters at form.');
+    return;
+  }
+
+  if (selected === 'session') {
+    currentSessionUser = null;
+    unlockedDepartments.clear();
+    saveSessionAuth();
+    sessionStorage.removeItem('mhc_portal_entered');
+    closeResetModal();
+    showPortal();
+    switchTab('request');
+    toast('Session reset successfully.');
+    return;
+  }
+
+  // Selected: 'all' (Reset all job orders)
+  const entered = $('resetConfirmInput').value.trim();
+  const isValid = entered === '8888' ||
+                  entered.toUpperCase() === 'RESET' ||
+                  entered === 'engr.admin2026!' ||
+                  (currentSessionUser && currentSessionUser.username === 'engr.admin');
+
+  if (!isValid) {
+    alertEl.style.display = 'block';
+    alertEl.textContent = '❌ Mali ang PIN o kumpirmasyon. Ilagay ang 8888 o "RESET" o i-click ang ⚡ 8888 button.';
+    return;
+  }
+
+  if (!confirm('PANGHULING KUMPIRMASYON:\nSigurado ka bang nais mong burahin ang LAHAT ng Job Order records? Magda-download muna ng automatic backup JSON file para ligtas ang iyong datos.')) {
+    return;
+  }
+
+  // 1. Safety Backup Download
+  if (jobs.length > 0) {
+    try {
+      const backupData = {
+        jobs: jobs,
+        exportDate: new Date().toISOString(),
+        reason: 'Pre-Reset Safety Backup'
+      };
+      downloadFile(
+        new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' }),
+        'MHC_Job_Orders_SafetyBackup_' + new Date().toISOString().replace(/[:.]/g, '-') + '.json'
+      );
+    } catch (e) {
+      console.warn('Backup generation warning:', e);
+    }
+  }
+
+  // 2. Reset Server
+  try {
+    const res = await fetch('/api/reset', { method: 'POST' });
+    if (!res.ok) throw new Error('Reset failed');
+  } catch (err) {
+    // Fallback sync with replace
+    try {
+      await fetch(SYNC_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobs: [], replace: true })
+      });
+    } catch(e) {}
+  }
+
+  // 3. Clear Local State
+  jobs = [];
+  localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
+
+  closeResetModal();
+  render();
+  if ($('departmentDashboard') && !$('departmentDashboard').hidden) {
+    renderDepartmentDashboard();
+  }
+  toast('✓ Tagumpay! Na-reset na ang lahat ng Job Order records sa 0.');
 });
 
 // Periodic Cloud Background Sync (every 15 seconds)

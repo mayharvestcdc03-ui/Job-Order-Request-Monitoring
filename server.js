@@ -145,6 +145,49 @@ const server = http.createServer((req, res) => {
     return res.end(JSON.stringify(data));
   }
 
+  // POST or DELETE /api/reset -> Reset all data to empty state
+  if ((pathname === '/api/reset' || pathname === '/api/jobs/reset') && (req.method === 'POST' || req.method === 'DELETE')) {
+    const fresh = freshState();
+    const success = saveData(fresh);
+    if (success) {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({
+        success: true,
+        message: 'All job order records have been reset successfully.',
+        jobs: [],
+        lastUpdated: fresh.lastUpdated
+      }));
+    } else {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ error: 'Failed to reset data on server' }));
+    }
+  }
+
+  // DELETE /api/jobs/:id -> Delete a specific job order
+  if (pathname.startsWith('/api/jobs/') && req.method === 'DELETE') {
+    const targetId = pathname.replace('/api/jobs/', '').trim();
+    const currentState = loadData();
+    const filteredJobs = currentState.jobs.filter(j => j.id !== targetId && j.jobNo !== targetId);
+    const newState = {
+      jobs: filteredJobs,
+      lastUpdated: new Date().toISOString()
+    };
+    const success = saveData(newState);
+    if (success) {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({
+        success: true,
+        deletedId: targetId,
+        count: filteredJobs.length,
+        jobs: filteredJobs,
+        lastUpdated: newState.lastUpdated
+      }));
+    } else {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ error: 'Failed to delete record on server' }));
+    }
+  }
+
   // POST /api/sync -> Sync / save job orders
   if ((pathname === '/api/sync' || pathname === '/api/jobs') && req.method === 'POST') {
     let body = '';
@@ -169,9 +212,10 @@ const server = http.createServer((req, res) => {
         }
 
         const currentState = loadData();
-        const mergedJobs = mergeJobs(currentState.jobs, incomingJobs);
+        const shouldReplace = payload.replace === true || payload.action === 'reset';
+        const finalJobs = shouldReplace ? incomingJobs : mergeJobs(currentState.jobs, incomingJobs);
         const newState = {
-          jobs: mergedJobs,
+          jobs: finalJobs,
           lastUpdated: new Date().toISOString()
         };
 
@@ -180,8 +224,8 @@ const server = http.createServer((req, res) => {
           res.writeHead(200, { 'Content-Type': 'application/json' });
           return res.end(JSON.stringify({
             success: true,
-            count: mergedJobs.length,
-            jobs: mergedJobs,
+            count: finalJobs.length,
+            jobs: finalJobs,
             lastUpdated: newState.lastUpdated
           }));
         } else {
