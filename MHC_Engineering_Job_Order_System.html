@@ -474,10 +474,10 @@ tr:last-child td {
 .p-Done { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
 .p-Cancelled { background: #f1f5f9; color: #64748b; text-decoration: line-through; border: 1px solid #e2e8f0; }
 
-.p-Urgent { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; font-weight: 800; }
-.p-High { background: #ffedd5; color: #c2410c; border: 1px solid #fdba74; }
-.p-Normal { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; }
-.p-Low { background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; }
+.p-Urgent, .p-p1 { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; font-weight: 800; }
+.p-High, .p-p2 { background: #ffedd5; color: #c2410c; border: 1px solid #fdba74; font-weight: 700; }
+.p-Normal, .p-p3 { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; font-weight: 600; }
+.p-Low, .p-p4 { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; font-weight: 600; }
 
 .small { font-size: 12px; color: var(--muted); }
 .empty { text-align: center; color: var(--muted); padding: 36px 20px; font-weight: 500; }
@@ -1458,10 +1458,10 @@ footer {
         <div>
           <label for="priorityReq">Initial Urgency / Priority</label>
           <select id="priorityReq">
-            <option value="Normal">Normal</option>
-            <option value="High">High</option>
-            <option value="Urgent">Urgent</option>
-            <option value="Low">Low</option>
+            <option value="Priority 1 - High Impact, Low Effort">Priority 1 - High Impact, Low Effort</option>
+            <option value="Priority 2 - High Impact, High Effort">Priority 2 - High Impact, High Effort</option>
+            <option value="Priority 3 - Low Impact, Low Effort" selected>Priority 3 - Low Impact, Low Effort</option>
+            <option value="Priority 4 - Low Impact, High Effort">Priority 4 - Low Impact, High Effort</option>
           </select>
         </div>
 
@@ -1536,10 +1536,10 @@ footer {
         <label for="filterPriority">Priority</label>
         <select id="filterPriority">
           <option value="">All Priorities</option>
-          <option value="Urgent">Urgent</option>
-          <option value="High">High</option>
-          <option value="Normal">Normal</option>
-          <option value="Low">Low</option>
+          <option value="Priority 1">Priority 1 - High Impact, Low Effort</option>
+          <option value="Priority 2">Priority 2 - High Impact, High Effort</option>
+          <option value="Priority 3">Priority 3 - Low Impact, Low Effort</option>
+          <option value="Priority 4">Priority 4 - Low Impact, High Effort</option>
         </select>
       </div>
       <div>
@@ -1739,10 +1739,10 @@ footer {
         <div>
           <label for="priority">Priority Level</label>
           <select id="priority">
-            <option value="Normal">Normal</option>
-            <option value="High">High</option>
-            <option value="Urgent">Urgent</option>
-            <option value="Low">Low</option>
+            <option value="Priority 1 - High Impact, Low Effort">Priority 1 - High Impact, Low Effort</option>
+            <option value="Priority 2 - High Impact, High Effort">Priority 2 - High Impact, High Effort</option>
+            <option value="Priority 3 - Low Impact, Low Effort">Priority 3 - Low Impact, Low Effort</option>
+            <option value="Priority 4 - Low Impact, High Effort">Priority 4 - Low Impact, High Effort</option>
           </select>
         </div>
         <div>
@@ -2282,6 +2282,27 @@ let jobs = [];
 let isCloudConnected = false;
 let currentSlipJob = null;
 
+// Priority helper functions (Action Priority Matrix: Impact vs Effort)
+function getPriorityClass(p) {
+  if (!p) return 'p-p3';
+  const str = String(p);
+  if (str.includes('1') || str === 'Urgent') return 'p-p1';
+  if (str.includes('2') || str === 'High') return 'p-p2';
+  if (str.includes('3') || str === 'Normal') return 'p-p3';
+  if (str.includes('4') || str === 'Low') return 'p-p4';
+  return 'p-p3';
+}
+
+function matchPriorityValue(p) {
+  if (!p) return 'Priority 3 - Low Impact, Low Effort';
+  const str = String(p);
+  if (str.includes('1') || str === 'Urgent') return 'Priority 1 - High Impact, Low Effort';
+  if (str.includes('2') || str === 'High') return 'Priority 2 - High Impact, High Effort';
+  if (str.includes('3') || str === 'Normal') return 'Priority 3 - Low Impact, Low Effort';
+  if (str.includes('4') || str === 'Low') return 'Priority 4 - Low Impact, High Effort';
+  return p;
+}
+
 
 const slug = {
   Admin: 'ADMIN',
@@ -2593,7 +2614,7 @@ $('requestForm').addEventListener('submit', async e => {
     area: $('area').value.trim(),
     equipment: $('equipment').value.trim() || 'General Facility',
     targetDate: $('targetDate').value || '',
-    priority: $('priorityReq').value || 'Normal',
+    priority: $('priorityReq').value || 'Priority 3 - Low Impact, Low Effort',
     details: $('details').value.trim(),
     requestedAt: dateTimeNow(),
     receivedBy: '',
@@ -2778,7 +2799,7 @@ function renderDepartmentDashboard() {
       <td>${esc(j.details)}</td>
       <td>${esc(j.requestedAt)}</td>
       <td>${esc(j.receivedAt) || '<span class="small" style="color: #94a3b8;">Pending Receipt</span>'}</td>
-      <td><span class="pill p-${esc(j.priority)}">${esc(j.priority)}</span></td>
+      <td><span class="pill ${getPriorityClass(j.priority)}" title="${esc(j.priority || '')}">${esc(j.priority || 'Priority 3')}</span></td>
       <td><span class="pill p-${esc(j.status)}">${esc(j.status)}</span></td>
       <td class="no-print" style="text-align: center;">
         <button class="secondary sm" onclick="openSlipModal('${j.id}')">
@@ -2805,10 +2826,21 @@ function render() {
   $('doneCount').textContent = jobs.filter(j => j.status === 'Done').length;
 
   const filtered = jobs.filter(j => {
+    let pMatch = true;
+    if (priority) {
+      const pVal = String(j.priority || '');
+      pMatch = pVal === priority ||
+               pVal.startsWith(priority) ||
+               (priority.includes('1') && (pVal.includes('1') || pVal === 'Urgent')) ||
+               (priority.includes('2') && (pVal.includes('2') || pVal === 'High')) ||
+               (priority.includes('3') && (pVal.includes('3') || pVal === 'Normal')) ||
+               (priority.includes('4') && (pVal.includes('4') || pVal === 'Low'));
+    }
+
     return (!dept || j.department === dept) &&
            (!status || j.status === status) &&
-           (!priority || j.priority === priority) &&
-           (!q || [j.jobNo, j.department, j.requester, j.area, j.equipment, j.details, j.receivedBy, j.actionTaken].join(' ').toLowerCase().includes(q));
+           pMatch &&
+           (!q || [j.jobNo, j.department, j.requester, j.area, j.equipment, j.details, j.receivedBy, j.actionTaken, j.priority].join(' ').toLowerCase().includes(q));
   });
 
   $('jobsBody').innerHTML = filtered.map(j => `
@@ -2830,7 +2862,7 @@ function render() {
       <td>
         ${j.receivedBy ? '<b>' + esc(j.receivedBy) + '</b><br><span class="small">' + esc(j.receivedAt) + '</span>' : '<span class="small" style="color: #94a3b8;">Pending Receipt</span>'}
       </td>
-      <td><span class="pill p-${esc(j.priority)}">${esc(j.priority)}</span></td>
+      <td><span class="pill ${getPriorityClass(j.priority)}" title="${esc(j.priority || '')}">${esc(j.priority || 'Priority 3')}</span></td>
       <td><span class="pill p-${esc(j.status)}">${esc(j.status)}</span></td>
       <td class="no-print" style="white-space: nowrap; text-align: center;">
         <button class="secondary sm" onclick="openSlipModal('${j.id}')" title="Print or Download PDF Slip">
@@ -2861,7 +2893,7 @@ window.editJob = id => {
   $('editId').value = id;
   $('modalJobNo').innerHTML = `<strong>${esc(j.jobNo)}</strong> • Department: <b>${esc(j.department)}</b> • Requested by: <b>${esc(j.requester)}</b>`;
   $('receivedBy').value = j.receivedBy || '';
-  $('priority').value = j.priority || 'Normal';
+  $('priority').value = matchPriorityValue(j.priority);
   $('status').value = j.status || 'Pending';
   $('actionTaken').value = j.actionTaken || '';
   $('materialsUsed').value = j.materialsUsed || '';
@@ -2928,8 +2960,9 @@ window.openSlipModal = id => {
   $('slipDateReq').textContent = j.requestedAt || '--';
 
   const pb = $('slipPriorityBadge');
-  pb.className = 'pill p-' + (j.priority || 'Normal');
-  pb.textContent = j.priority || 'Normal';
+  const prioVal = matchPriorityValue(j.priority);
+  pb.className = 'pill ' + getPriorityClass(prioVal);
+  pb.textContent = prioVal;
 
   const sb = $('slipStatusBadge');
   sb.className = 'pill p-' + (j.status || 'Pending');
