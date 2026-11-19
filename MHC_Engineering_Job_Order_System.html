@@ -1458,10 +1458,9 @@ footer {
         <div>
           <label for="priorityReq">Initial Urgency / Priority</label>
           <select id="priorityReq">
-            <option value="Priority 1 - High Impact, Low Effort">Priority 1 - High Impact, Low Effort</option>
-            <option value="Priority 2 - High Impact, High Effort">Priority 2 - High Impact, High Effort</option>
-            <option value="Priority 3 - Low Impact, Low Effort" selected>Priority 3 - Low Impact, Low Effort</option>
-            <option value="Priority 4 - Low Impact, High Effort">Priority 4 - Low Impact, High Effort</option>
+            <option value="Priority # 1 - May affect product safety and legality. Shall be accomplished within 24 Hrs.">Priority # 1 - May affect product safety and legality. Shall be accomplished within 24 Hrs.</option>
+            <option value="Priority # 2 - May affect process performance and product quality but not product safety/ legality. Shall be accomplished within 5 days.">Priority # 2 - May affect process performance and product quality but not product safety/ legality. Shall be accomplished within 5 days.</option>
+            <option value="Priority # 3 - No direct impact to the product, process safety and legality. Shall be accomplished within 1 month" selected>Priority # 3 - No direct impact to the product, process safety and legality. Shall be accomplished within 1 month</option>
           </select>
         </div>
 
@@ -1536,10 +1535,9 @@ footer {
         <label for="filterPriority">Priority</label>
         <select id="filterPriority">
           <option value="">All Priorities</option>
-          <option value="Priority 1">Priority 1 - High Impact, Low Effort</option>
-          <option value="Priority 2">Priority 2 - High Impact, High Effort</option>
-          <option value="Priority 3">Priority 3 - Low Impact, Low Effort</option>
-          <option value="Priority 4">Priority 4 - Low Impact, High Effort</option>
+          <option value="Priority # 1">Priority # 1 (Within 24 Hrs)</option>
+          <option value="Priority # 2">Priority # 2 (Within 5 Days)</option>
+          <option value="Priority # 3">Priority # 3 (Within 1 Month)</option>
         </select>
       </div>
       <div>
@@ -1739,10 +1737,9 @@ footer {
         <div>
           <label for="priority">Priority Level</label>
           <select id="priority">
-            <option value="Priority 1 - High Impact, Low Effort">Priority 1 - High Impact, Low Effort</option>
-            <option value="Priority 2 - High Impact, High Effort">Priority 2 - High Impact, High Effort</option>
-            <option value="Priority 3 - Low Impact, Low Effort">Priority 3 - Low Impact, Low Effort</option>
-            <option value="Priority 4 - Low Impact, High Effort">Priority 4 - Low Impact, High Effort</option>
+            <option value="Priority # 1 - May affect product safety and legality. Shall be accomplished within 24 Hrs.">Priority # 1 - May affect product safety and legality. Shall be accomplished within 24 Hrs.</option>
+            <option value="Priority # 2 - May affect process performance and product quality but not product safety/ legality. Shall be accomplished within 5 days.">Priority # 2 - May affect process performance and product quality but not product safety/ legality. Shall be accomplished within 5 days.</option>
+            <option value="Priority # 3 - No direct impact to the product, process safety and legality. Shall be accomplished within 1 month">Priority # 3 - No direct impact to the product, process safety and legality. Shall be accomplished within 1 month</option>
           </select>
         </div>
         <div>
@@ -2282,24 +2279,31 @@ let jobs = [];
 let isCloudConnected = false;
 let currentSlipJob = null;
 
-// Priority helper functions (Action Priority Matrix: Impact vs Effort)
+// Priority helper functions (Priority # 1, Priority # 2, Priority # 3)
 function getPriorityClass(p) {
   if (!p) return 'p-p3';
   const str = String(p);
   if (str.includes('1') || str === 'Urgent') return 'p-p1';
   if (str.includes('2') || str === 'High') return 'p-p2';
   if (str.includes('3') || str === 'Normal') return 'p-p3';
-  if (str.includes('4') || str === 'Low') return 'p-p4';
   return 'p-p3';
 }
 
-function matchPriorityValue(p) {
-  if (!p) return 'Priority 3 - Low Impact, Low Effort';
+function formatPriorityBadge(p) {
+  if (!p) return 'Priority # 3';
   const str = String(p);
-  if (str.includes('1') || str === 'Urgent') return 'Priority 1 - High Impact, Low Effort';
-  if (str.includes('2') || str === 'High') return 'Priority 2 - High Impact, High Effort';
-  if (str.includes('3') || str === 'Normal') return 'Priority 3 - Low Impact, Low Effort';
-  if (str.includes('4') || str === 'Low') return 'Priority 4 - Low Impact, High Effort';
+  if (str.includes('1') || str === 'Urgent') return 'Priority # 1 (24 Hrs)';
+  if (str.includes('2') || str === 'High') return 'Priority # 2 (5 Days)';
+  if (str.includes('3') || str === 'Normal') return 'Priority # 3 (1 Month)';
+  return str;
+}
+
+function matchPriorityValue(p) {
+  if (!p) return 'Priority # 3 - No direct impact to the product, process safety and legality. Shall be accomplished within 1 month';
+  const str = String(p);
+  if (str.includes('1') || str === 'Urgent') return 'Priority # 1 - May affect product safety and legality. Shall be accomplished within 24 Hrs.';
+  if (str.includes('2') || str === 'High') return 'Priority # 2 - May affect process performance and product quality but not product safety/ legality. Shall be accomplished within 5 days.';
+  if (str.includes('3') || str === 'Normal') return 'Priority # 3 - No direct impact to the product, process safety and legality. Shall be accomplished within 1 month';
   return p;
 }
 
@@ -2614,7 +2618,7 @@ $('requestForm').addEventListener('submit', async e => {
     area: $('area').value.trim(),
     equipment: $('equipment').value.trim() || 'General Facility',
     targetDate: $('targetDate').value || '',
-    priority: $('priorityReq').value || 'Priority 3 - Low Impact, Low Effort',
+    priority: $('priorityReq').value || 'Priority # 3 - No direct impact to the product, process safety and legality. Shall be accomplished within 1 month',
     details: $('details').value.trim(),
     requestedAt: dateTimeNow(),
     receivedBy: '',
@@ -2799,7 +2803,7 @@ function renderDepartmentDashboard() {
       <td>${esc(j.details)}</td>
       <td>${esc(j.requestedAt)}</td>
       <td>${esc(j.receivedAt) || '<span class="small" style="color: #94a3b8;">Pending Receipt</span>'}</td>
-      <td><span class="pill ${getPriorityClass(j.priority)}" title="${esc(j.priority || '')}">${esc(j.priority || 'Priority 3')}</span></td>
+      <td><span class="pill ${getPriorityClass(j.priority)}" title="${esc(j.priority || '')}">${esc(formatPriorityBadge(j.priority))}</span></td>
       <td><span class="pill p-${esc(j.status)}">${esc(j.status)}</span></td>
       <td class="no-print" style="text-align: center;">
         <button class="secondary sm" onclick="openSlipModal('${j.id}')">
@@ -2833,8 +2837,7 @@ function render() {
                pVal.startsWith(priority) ||
                (priority.includes('1') && (pVal.includes('1') || pVal === 'Urgent')) ||
                (priority.includes('2') && (pVal.includes('2') || pVal === 'High')) ||
-               (priority.includes('3') && (pVal.includes('3') || pVal === 'Normal')) ||
-               (priority.includes('4') && (pVal.includes('4') || pVal === 'Low'));
+               (priority.includes('3') && (pVal.includes('3') || pVal === 'Normal'));
     }
 
     return (!dept || j.department === dept) &&
@@ -2862,7 +2865,7 @@ function render() {
       <td>
         ${j.receivedBy ? '<b>' + esc(j.receivedBy) + '</b><br><span class="small">' + esc(j.receivedAt) + '</span>' : '<span class="small" style="color: #94a3b8;">Pending Receipt</span>'}
       </td>
-      <td><span class="pill ${getPriorityClass(j.priority)}" title="${esc(j.priority || '')}">${esc(j.priority || 'Priority 3')}</span></td>
+      <td><span class="pill ${getPriorityClass(j.priority)}" title="${esc(j.priority || '')}">${esc(formatPriorityBadge(j.priority))}</span></td>
       <td><span class="pill p-${esc(j.status)}">${esc(j.status)}</span></td>
       <td class="no-print" style="white-space: nowrap; text-align: center;">
         <button class="secondary sm" onclick="openSlipModal('${j.id}')" title="Print or Download PDF Slip">
