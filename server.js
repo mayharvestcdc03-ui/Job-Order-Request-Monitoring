@@ -84,7 +84,9 @@ function mergeJobs(serverJobs, incomingJobs) {
         priority: inc.priority || existing.priority || 'Normal',
         actionTaken: inc.actionTaken || existing.actionTaken || '',
         materialsUsed: inc.materialsUsed || existing.materialsUsed || '',
-        remarks: inc.remarks || existing.remarks || ''
+        remarks: inc.remarks || existing.remarks || '',
+        receivingComment: inc.receivingComment !== undefined ? inc.receivingComment : (existing.receivingComment || ''),
+        completedAt: inc.completedAt || existing.completedAt || ''
       });
     }
   });

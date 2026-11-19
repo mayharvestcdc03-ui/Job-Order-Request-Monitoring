@@ -470,6 +470,7 @@ tr:last-child td {
   white-space: nowrap;
 }
 .p-Pending { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+.p-Accepted { background: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; font-weight: 700; }
 .p-Ongoing { background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
 .p-Done { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
 .p-Cancelled { background: #f1f5f9; color: #64748b; text-decoration: line-through; border: 1px solid #e2e8f0; }
@@ -1727,10 +1728,29 @@ footer {
     <form id="updateForm">
       <input type="hidden" id="editId">
 
+      <!-- Submission Date vs Acceptance Date -->
+      <div class="grid grid-2" style="margin-bottom: 14px; background: #f8fafc; padding: 12px 14px; border-radius: 8px; border: 1px solid #e2e8f0;">
+        <div>
+          <label style="font-size: 11.5px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 3px;">Submission Date (Date Requested)</label>
+          <div id="modalDateRequested" style="font-weight: 700; color: #1e293b; font-size: 14px;">--</div>
+          <div class="small" style="color: #64748b; margin-top: 2px;">Petsa/oras ng pag-submit ng department</div>
+        </div>
+        <div>
+          <label for="modalDateAccepted" style="font-size: 11.5px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 3px;">Acceptance Date (Date Received) *</label>
+          <input id="modalDateAccepted" placeholder="Auto-recorded when accepted" style="font-size: 13.5px; padding: 7px 10px;">
+          <div class="small" style="color: #0284c7; margin-top: 2px;">ℹ️ Ang bilang ng araw ay magsisimula sa Acceptance Date.</div>
+        </div>
+      </div>
+
       <div style="margin-bottom: 14px;">
-        <label for="receivedBy">Engineering Personnel Who Received *</label>
+        <label for="receivedBy">Engineering Personnel Who Received / Accepted *</label>
         <input id="receivedBy" placeholder="Full name of receiving technician / engineer">
-        <div class="small" style="margin-top: 4px;">Receiving timestamp is automatically recorded when saved.</div>
+        <div class="small" style="margin-top: 4px;">Kapag nilagyan ng tumanggap, awtomatikong nare-record ang Acceptance Date kung bakante.</div>
+      </div>
+
+      <div style="margin-bottom: 14px;">
+        <label for="receivingComment">Engineering Acceptance Comment / Assessment</label>
+        <textarea id="receivingComment" style="min-height: 60px;" placeholder="Puna, initial assessment, o comment ng Engineering bago tanggapin at lakarin ang request..."></textarea>
       </div>
 
       <div class="grid grid-2" style="margin-bottom: 14px;">
@@ -1745,7 +1765,8 @@ footer {
         <div>
           <label for="status">Job Status</label>
           <select id="status">
-            <option value="Pending">Pending</option>
+            <option value="Pending">Pending (Awaiting Acceptance)</option>
+            <option value="Accepted">Accepted</option>
             <option value="Ongoing">Ongoing</option>
             <option value="Done">Done</option>
             <option value="Cancelled">Cancelled</option>
@@ -1867,17 +1888,21 @@ footer {
         <div class="slip-sec-title">SECTION B: ENGINEERING RECEIVING & ACTION ASSESSMENT</div>
         <div class="slip-grid-3">
           <div class="slip-cell">
-            <label>Received By (Technician / Engineer)</label>
+            <label>Received / Accepted By</label>
             <div class="val" id="slipReceivedBy">Not yet received</div>
           </div>
           <div class="slip-cell">
-            <label>Date & Time Received</label>
+            <label>Acceptance Date &amp; Time</label>
             <div class="val" id="slipReceivedAt">Pending receipt</div>
           </div>
           <div class="slip-cell">
             <label>Target Completion Date</label>
             <div class="val" id="slipTargetDate">As Scheduled</div>
           </div>
+        </div>
+        <div class="slip-cell">
+          <label>Engineering Acceptance Comment / Initial Assessment</label>
+          <div class="val" id="slipReceivingComment" style="min-height: 28px; white-space: pre-line;">None recorded</div>
         </div>
         <div class="slip-cell">
           <label>Action Taken / Corrective Maintenance Done</label>
@@ -2305,6 +2330,108 @@ function matchPriorityValue(p) {
   if (str.includes('2') || str === 'High') return 'Priority # 2 - May affect process performance and product quality but not product safety/ legality. Shall be accomplished within 5 days.';
   if (str.includes('3') || str === 'Normal') return 'Priority # 3 - No direct impact to the product, process safety and legality. Shall be accomplished within 1 month';
   return p;
+}
+
+// Date Parsing and Acceptance Aging Calculator
+function parseDateSafe(dateStr) {
+  if (!dateStr) return null;
+  const d = new Date(dateStr);
+  if (!isNaN(d.getTime())) return d;
+  const parts = String(dateStr).match(/(\d+)\/(\d+)\/(\d+)(?:,\s*(\d+):(\d+)(?::(\d+))?\s*(AM|PM)?)?/i);
+  if (parts) {
+    const month = parseInt(parts[1], 10) - 1;
+    const day = parseInt(parts[2], 10);
+    let year = parseInt(parts[3], 10);
+    if (year < 100) year += 2000;
+    let hour = parts[4] ? parseInt(parts[4], 10) : 0;
+    const min = parts[5] ? parseInt(parts[5], 10) : 0;
+    const sec = parts[6] ? parseInt(parts[6], 10) : 0;
+    const ampm = parts[7] ? parts[7].toUpperCase() : '';
+    if (ampm === 'PM' && hour < 12) hour += 12;
+    if (ampm === 'AM' && hour === 12) hour = 0;
+    return new Date(year, month, day, hour, min, sec);
+  }
+  return null;
+}
+
+function getDaysSinceAcceptance(j) {
+  const acceptDateStr = j.receivedAt || j.acceptedAt;
+  if (!acceptDateStr) return null;
+
+  const acceptedDate = parseDateSafe(acceptDateStr);
+  if (!acceptedDate) return null;
+
+  const now = new Date();
+  const endDate = (j.status === 'Done' && (j.completedAt || j.actionAt))
+    ? parseDateSafe(j.completedAt || j.actionAt)
+    : now;
+
+  const diffMs = (endDate || now).getTime() - acceptedDate.getTime();
+  if (diffMs < 0) return { hours: 0, days: 0 };
+
+  const totalHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const totalDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  return { hours: totalHours, days: totalDays };
+}
+
+function renderStatusBadge(j) {
+  const status = j.status || 'Pending';
+  const age = getDaysSinceAcceptance(j);
+
+  // If not yet accepted by engineering
+  if (!j.receivedAt && !j.acceptedAt) {
+    return `<span class="pill p-Pending" title="Submitted: ${esc(j.requestedAt || '')} - Awaiting Engineering Acceptance">Pending Receipt</span>`;
+  }
+
+  // Active statuses: Ongoing or Accepted
+  if (status === 'Ongoing' || status === 'Accepted' || status === 'Pending') {
+    let dayText = '';
+    if (age) {
+      if (age.days === 0) {
+        dayText = age.hours <= 1 ? 'Just Accepted' : age.hours + ' hrs';
+      } else if (age.days === 1) {
+        dayText = '1 day';
+      } else {
+        dayText = age.days + ' days';
+      }
+    }
+
+    // Check SLA warning according to Priority 1 (24 Hrs), Priority 2 (5 Days), Priority 3 (1 Month)
+    const pStr = String(j.priority || '');
+    let isOverdue = false;
+    if (age) {
+      if (pStr.includes('1') && age.hours >= 24) isOverdue = true;
+      else if (pStr.includes('2') && age.days >= 5) isOverdue = true;
+      else if (pStr.includes('3') && age.days >= 30) isOverdue = true;
+    }
+
+    const badgeClass = isOverdue ? 'p-Urgent' : (status === 'Ongoing' ? 'p-Ongoing' : 'p-Accepted');
+    const warningIcon = isOverdue ? '⚠️ Overdue · ' : '';
+    const titleTip = isOverdue
+      ? `Overdue! Target accomplishment SLA exceeded (${dayText} elapsed since accepted on ${esc(j.receivedAt)})`
+      : `Accepted on ${esc(j.receivedAt)} (${dayText} active)`;
+
+    return `<span class="pill ${badgeClass}" title="${titleTip}">${warningIcon}${esc(status)} (${dayText || 'Active'})</span>`;
+  }
+
+  // Done status
+  if (status === 'Done') {
+    let dur = '';
+    if (age) {
+      if (age.days === 0) dur = ' (within 24 hrs)';
+      else if (age.days === 1) dur = ' (1 day)';
+      else dur = ` (${age.days} days)`;
+    }
+    return `<span class="pill p-Done" title="Completed. Duration from acceptance: ${age ? age.days + ' days' : ''}">Done${dur}</span>`;
+  }
+
+  // Cancelled status
+  if (status === 'Cancelled') {
+    return `<span class="pill p-Cancelled">Cancelled</span>`;
+  }
+
+  return `<span class="pill p-${esc(status)}">${esc(status)}</span>`;
 }
 
 
@@ -2804,7 +2931,7 @@ function renderDepartmentDashboard() {
       <td>${esc(j.requestedAt)}</td>
       <td>${esc(j.receivedAt) || '<span class="small" style="color: #94a3b8;">Pending Receipt</span>'}</td>
       <td><span class="pill ${getPriorityClass(j.priority)}" title="${esc(j.priority || '')}">${esc(formatPriorityBadge(j.priority))}</span></td>
-      <td><span class="pill p-${esc(j.status)}">${esc(j.status)}</span></td>
+      <td>${renderStatusBadge(j)}</td>
       <td class="no-print" style="text-align: center;">
         <button class="secondary sm" onclick="openSlipModal('${j.id}')">
           <span>📄</span> Slip (PDF)
@@ -2866,7 +2993,7 @@ function render() {
         ${j.receivedBy ? '<b>' + esc(j.receivedBy) + '</b><br><span class="small">' + esc(j.receivedAt) + '</span>' : '<span class="small" style="color: #94a3b8;">Pending Receipt</span>'}
       </td>
       <td><span class="pill ${getPriorityClass(j.priority)}" title="${esc(j.priority || '')}">${esc(formatPriorityBadge(j.priority))}</span></td>
-      <td><span class="pill p-${esc(j.status)}">${esc(j.status)}</span></td>
+      <td>${renderStatusBadge(j)}</td>
       <td class="no-print" style="white-space: nowrap; text-align: center;">
         <button class="secondary sm" onclick="openSlipModal('${j.id}')" title="Print or Download PDF Slip">
           <span>📄</span> Slip
@@ -2895,7 +3022,10 @@ window.editJob = id => {
   if (!j) return;
   $('editId').value = id;
   $('modalJobNo').innerHTML = `<strong>${esc(j.jobNo)}</strong> • Department: <b>${esc(j.department)}</b> • Requested by: <b>${esc(j.requester)}</b>`;
+  $('modalDateRequested').textContent = j.requestedAt || '--';
+  $('modalDateAccepted').value = j.receivedAt || '';
   $('receivedBy').value = j.receivedBy || '';
+  $('receivingComment').value = j.receivingComment || '';
   $('priority').value = matchPriorityValue(j.priority);
   $('status').value = j.status || 'Pending';
   $('actionTaken').value = j.actionTaken || '';
@@ -2931,16 +3061,38 @@ $('updateForm').addEventListener('submit', async e => {
   e.preventDefault();
   const j = jobs.find(x => x.id === $('editId').value);
   if (!j) return;
+
   const receiver = $('receivedBy').value.trim();
-  if (receiver && !j.receivedAt) {
-    j.receivedAt = dateTimeNow();
-  }
-  if (!receiver) {
+  const customAcceptedAt = $('modalDateAccepted').value.trim();
+
+  // If receiver is provided and no acceptance date was entered, auto-stamp now
+  if (receiver && !customAcceptedAt) {
+    if (!j.receivedAt) j.receivedAt = dateTimeNow();
+  } else if (customAcceptedAt) {
+    j.receivedAt = customAcceptedAt;
+  } else if (!receiver) {
     j.receivedAt = '';
   }
+
   j.receivedBy = receiver;
+  j.receivingComment = $('receivingComment').value.trim();
   j.priority = $('priority').value;
-  j.status = $('status').value;
+
+  const newStatus = $('status').value;
+  // If receiving for first time and status was still Pending, transition to Ongoing automatically
+  if (receiver && j.status === 'Pending' && newStatus === 'Pending') {
+    j.status = 'Ongoing';
+  } else {
+    j.status = newStatus;
+  }
+
+  // Record completion date if status set to Done
+  if (j.status === 'Done' && !j.completedAt) {
+    j.completedAt = dateTimeNow();
+  } else if (j.status !== 'Done') {
+    j.completedAt = '';
+  }
+
   j.actionTaken = $('actionTaken').value.trim();
   j.materialsUsed = $('materialsUsed').value.trim();
   j.remarks = $('remarks').value.trim();
@@ -2951,6 +3103,7 @@ $('updateForm').addEventListener('submit', async e => {
   if ($('departmentDashboard') && !$('departmentDashboard').hidden) {
     renderDepartmentDashboard();
   }
+  toast('Job Order ' + j.jobNo + ' updated successfully!');
 });
 
 // Official Job Order Slip (MHC-ENG-JO-01) Modal & PDF Export
@@ -2968,8 +3121,9 @@ window.openSlipModal = id => {
   pb.textContent = prioVal;
 
   const sb = $('slipStatusBadge');
+  const age = getDaysSinceAcceptance(j);
   sb.className = 'pill p-' + (j.status || 'Pending');
-  sb.textContent = j.status || 'Pending';
+  sb.textContent = (j.status || 'Pending') + (age ? (j.status === 'Done' ? ' (' + age.days + 'd completed)' : ' (' + age.days + 'd active)') : '');
 
   $('slipDept').textContent = j.department || '--';
   $('slipRequester').textContent = j.requester || '--';
@@ -2978,8 +3132,11 @@ window.openSlipModal = id => {
   $('slipDetails').textContent = j.details || '--';
 
   $('slipReceivedBy').textContent = j.receivedBy || 'Not yet received';
-  $('slipReceivedAt').textContent = j.receivedAt || 'Pending receipt';
+  $('slipReceivedAt').textContent = j.receivedAt ? j.receivedAt + (age ? ' (' + age.days + ' days active)' : '') : 'Pending receipt';
   $('slipTargetDate').textContent = j.targetDate || 'As scheduled / standard turn-around';
+  if ($('slipReceivingComment')) {
+    $('slipReceivingComment').textContent = j.receivingComment || 'None recorded';
+  }
   $('slipActionTaken').textContent = j.actionTaken || (j.status === 'Done' ? 'Work completed and verified operational.' : 'Pending engineering execution / assessment.');
   $('slipMaterials').textContent = j.materialsUsed || 'None recorded';
   $('slipRemarks').textContent = j.remarks || 'None';
