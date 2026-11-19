@@ -1294,19 +1294,14 @@ footer {
         </div>
         <div>
           <div id="portalEngrAlert" class="portal-alert"></div>
-          <div class="portal-quick-chips">
-            <span style="font-size:10px; color:#94a3b8; align-self:center;">1-Click:</span>
-            <button type="button" class="portal-chip" onclick="fillPortalEngr('engr.admin','engr.admin2026!')">👤 Head</button>
-            <button type="button" class="portal-chip" onclick="fillPortalEngr('engr.tech','engr.tech2026!')">🛠️ Tech</button>
-          </div>
           <form id="portalEngrForm">
             <div class="portal-form-group">
               <label>Username</label>
-              <input id="portalEngrUser" placeholder="engr.admin" required>
+              <input id="portalEngrUser" placeholder="Username (hal. engr.admin)" required autocomplete="username">
             </div>
             <div class="portal-form-group">
               <label>Password</label>
-              <input id="portalEngrPass" type="password" placeholder="••••••••" required>
+              <input id="portalEngrPass" type="password" placeholder="••••••••" required autocomplete="current-password">
             </div>
             <button type="submit" class="portal-btn portal-btn-blue">
               <span>🔓</span> Login sa Engineering →
@@ -1326,19 +1321,14 @@ footer {
         </div>
         <div>
           <div id="portalDeptAlert" class="portal-alert"></div>
-          <div class="portal-quick-chips">
-            <span style="font-size:10px; color:#94a3b8; align-self:center;">1-Click:</span>
-            <button type="button" class="portal-chip" onclick="fillPortalDept('dept.user1','dept.user2026!')">🏢 User 1</button>
-            <button type="button" class="portal-chip" onclick="fillPortalDept('dept.user2','dept.lead2026!')">📋 User 2</button>
-          </div>
           <form id="portalDeptForm">
             <div class="portal-form-group">
               <label>Username</label>
-              <input id="portalDeptUser" placeholder="dept.user1" required>
+              <input id="portalDeptUser" placeholder="Username (hal. dept.user1)" required autocomplete="username">
             </div>
             <div class="portal-form-group">
               <label>Password</label>
-              <input id="portalDeptPass" type="password" placeholder="••••••••" required>
+              <input id="portalDeptPass" type="password" placeholder="••••••••" required autocomplete="current-password">
             </div>
             <button type="submit" class="portal-btn portal-btn-amber">
               <span>🔑</span> Login sa Department →
@@ -1659,16 +1649,6 @@ footer {
     <p class="sub" id="loginModalDesc">Please sign in with authorized credentials to access this dashboard.</p>
     
     <div id="loginAlert" style="display:none; padding:10px 12px; border-radius:8px; margin-bottom:14px; font-size:13px; font-weight:600;"></div>
-
-    <div style="background:#f1f5f9; padding:10px 14px; border-radius:10px; margin-bottom:14px; border:1px solid #e2e8f0;">
-      <div style="font-size:11.5px; font-weight:700; text-transform:uppercase; color:#475569; margin-bottom:6px;">⚡ 1-Click Quick Sign In (Pumili ng Account):</div>
-      <div style="display:flex; flex-wrap:wrap; gap:6px;">
-        <button type="button" class="secondary sm" style="font-size:11px; padding:5px 9px;" onclick="fillCreds('engr.admin','engr.admin2026!')">👤 Engr Head</button>
-        <button type="button" class="secondary sm" style="font-size:11px; padding:5px 9px;" onclick="fillCreds('engr.tech','engr.tech2026!')">🛠️ Engr Tech</button>
-        <button type="button" class="secondary sm" style="font-size:11px; padding:5px 9px;" onclick="fillCreds('dept.user1','dept.user2026!')">🏢 Dept Monitor 1</button>
-        <button type="button" class="secondary sm" style="font-size:11px; padding:4px 8px;" onclick="fillCreds('dept.user2','dept.lead2026!')">📋 Dept Monitor 2</button>
-      </div>
-    </div>
 
     <form id="loginForm">
       <div style="margin-bottom: 14px;">
@@ -2004,12 +1984,7 @@ footer {
       <label for="resetConfirmInput" style="font-size:12px; font-weight:700; color:#1e293b; display:block; margin-bottom:6px;">
         Security PIN o i-type ang "RESET" upang kumpirmahin: *
       </label>
-      <div style="display:flex; gap:8px;">
-        <input id="resetConfirmInput" placeholder='Ilagay ang 8888 o "RESET"' style="flex:1; font-weight:700;">
-        <button type="button" class="secondary sm" onclick="fillResetAdmin()" title="1-Click para sa Admin">
-          ⚡ 8888
-        </button>
-      </div>
+      <input id="resetConfirmInput" placeholder='Ilagay ang Security PIN (8888) o "RESET"' style="width:100%; font-weight:700;">
       <div id="resetAlert" style="display:none; color:#dc2626; font-size:12px; font-weight:700; margin-top:6px;"></div>
     </div>
 
