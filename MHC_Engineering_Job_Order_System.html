@@ -6,6 +6,7 @@
 <title>MHC Engineering Job Order Request & Monitoring System</title>
 <link rel="icon" type="image/png" href="assets/mhc-logo.png">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root {
   --navy: #0f172a;
@@ -2300,6 +2301,18 @@ const STORAGE_KEY = 'mhc_job_orders_v1';
 const API_URL = '/api/data';
 const SYNC_URL = '/api/sync';
 
+const SUPABASE_URL = 'https://svquyjpguhrmhzbgynsw.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_J6udCVSr_aA2_LYp5QcSGQ_hMFu_wMA';
+let supabaseClient = null;
+try {
+  if (window.supabase && window.supabase.createClient) {
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    console.log('[MHC] Supabase Cloud DB connected successfully!');
+  }
+} catch (e) {
+  console.warn('[MHC] Supabase init fallback:', e);
+}
+
 let jobs = [];
 let isCloudConnected = false;
 let currentSlipJob = null;
@@ -2545,12 +2558,35 @@ function loadLocalStorage() {
 
 // Cloud Fetch (Pull)
 async function fetchCloudData(silent = false) {
+  // 1. Try Supabase Cloud DB first
+  if (supabaseClient) {
+    try {
+      const { data, error } = await supabaseClient
+        .from('job_orders')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (!error && Array.isArray(data)) {
+        jobs = data;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(jobs));
+        setSyncStatus('online');
+        if (!silent) toast('Connected to Supabase Cloud DB (Live Sync Active)');
+        render();
+        if ($('departmentDashboard') && !$('departmentDashboard').hidden) {
+          renderDepartmentDashboard();
+        }
+        return true;
+      }
+    } catch (err) {
+      console.warn('[MHC] Supabase fetch error, fallback to server:', err);
+    }
+  }
+
+  // 2. Fallback to Local Node Server
   try {
     const res = await fetch(API_URL, { cache: 'no-store' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     if (data && Array.isArray(data.jobs)) {
-      // Merge cloud records with local records
       const jobMap = new Map();
       jobs.forEach(j => { if (j && (j.id || j.jobNo)) jobMap.set(j.id || j.jobNo, j); });
       data.jobs.forEach(j => {
@@ -2563,7 +2599,7 @@ async function fetchCloudData(silent = false) {
       jobs = Array.from(jobMap.values());
       localStorage.setItem(STORAGE_KEY, JSON.stringify(jobs));
       setSyncStatus('online');
-      if (!silent) toast('Synchronized with cloud server.');
+      if (!silent) toast('Synchronized with local server.');
       render();
       if ($('departmentDashboard') && !$('departmentDashboard').hidden) {
         renderDepartmentDashboard();
@@ -2580,19 +2616,56 @@ async function fetchCloudData(silent = false) {
 async function syncToCloud(showToast = false, replace = false) {
   setSyncStatus('syncing');
   localStorage.setItem(STORAGE_KEY, JSON.stringify(jobs));
+
+  let supabaseSuccess = false;
+  // 1. Sync to Supabase Cloud DB
+  if (supabaseClient) {
+    try {
+      if (jobs.length > 0) {
+        const cleanJobs = jobs.map(j => ({
+          id: String(j.id),
+          jobNo: j.jobNo || '',
+          department: j.department || '',
+          requester: j.requester || '',
+          area: j.area || '',
+          equipment: j.equipment || '',
+          targetDate: j.targetDate || '',
+          priority: j.priority || '',
+          details: j.details || '',
+          requestedAt: j.requestedAt || '',
+          receivedBy: j.receivedBy || '',
+          receivedAt: j.receivedAt || '',
+          actionTaken: j.actionTaken || '',
+          materialsUsed: j.materialsUsed || '',
+          remarks: j.remarks || '',
+          status: j.status || 'Pending'
+        }));
+        const { error } = await supabaseClient.from('job_orders').upsert(cleanJobs);
+        if (!error) supabaseSuccess = true;
+      } else {
+        supabaseSuccess = true;
+      }
+    } catch (err) {
+      console.warn('[MHC] Supabase sync error:', err);
+    }
+  }
+
+  // 2. Also push to Local Server if present
   try {
     const res = await fetch(SYNC_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ jobs: jobs, replace: replace })
     });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const result = await res.json();
+    if (res.ok) setSyncStatus('online');
+  } catch (err) {}
+
+  if (supabaseSuccess) {
     setSyncStatus('online');
-    if (showToast) toast('Job orders synced to cloud successfully.');
-  } catch (err) {
-    setSyncStatus('offline');
-    if (showToast) toast('Saved locally (Cloud server offline).');
+    if (showToast) toast('Job orders saved to Cloud Database.');
+  } else {
+    setSyncStatus(navigator.onLine ? 'online' : 'offline');
+    if (showToast) toast('Saved locally.');
   }
 }
 
@@ -3039,6 +3112,13 @@ window.deleteJob = async id => {
   if (!j) return;
   if (confirm('Are you sure you want to delete ' + j.jobNo + ' (' + j.department + ')? This action cannot be undone.')) {
     jobs = jobs.filter(x => x.id !== id);
+    if (supabaseClient) {
+      try {
+        await supabaseClient.from('job_orders').delete().eq('id', id);
+      } catch (e) {
+        console.warn('[MHC] Supabase delete error:', e);
+      }
+    }
     try {
       await fetch('/api/jobs/' + encodeURIComponent(id), { method: 'DELETE' });
     } catch(e) {}
@@ -3371,7 +3451,15 @@ $('btnExecuteReset').addEventListener('click', async () => {
     }
   }
 
-  // 2. Reset Server
+  // 2. Reset Supabase Cloud DB & Server
+  if (supabaseClient) {
+    try {
+      await supabaseClient.from('job_orders').delete().neq('id', '___none___');
+    } catch (e) {
+      console.warn('[MHC] Supabase reset error:', e);
+    }
+  }
+
   try {
     const res = await fetch('/api/reset', { method: 'POST' });
     if (!res.ok) throw new Error('Reset failed');
@@ -3402,6 +3490,21 @@ $('btnExecuteReset').addEventListener('click', async () => {
 setInterval(() => {
   fetchCloudData(true);
 }, 15000);
+
+// Setup Supabase Realtime Listener (instant sync across all devices)
+if (supabaseClient) {
+  try {
+    supabaseClient
+      .channel('realtime_job_orders')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'job_orders' }, payload => {
+        console.log('[MHC Realtime] DB update received from another device:', payload);
+        fetchCloudData(true);
+      })
+      .subscribe();
+  } catch (e) {
+    console.warn('[MHC] Realtime subscription error:', e);
+  }
+}
 
 // Startup Initialization
 loadSessionAuth();
