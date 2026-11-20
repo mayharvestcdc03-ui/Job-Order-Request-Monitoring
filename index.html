@@ -1530,7 +1530,7 @@ footer {
           <option value="Pending">Pending</option>
           <option value="Ongoing">Ongoing</option>
           <option value="Done">Done</option>
-          <option value="Cancelled">Cancelled</option>
+          <option value="Cancelled">Cancelled / Deleted</option>
         </select>
       </div>
       <div>
@@ -2391,6 +2391,10 @@ function getDaysSinceAcceptance(j) {
 function renderStatusBadge(j) {
   const status = j.status || 'Pending';
 
+  if (status === 'Cancelled' || status === 'Deleted' || j.deletedBy) {
+    const tip = j.deletedBy ? `Deleted by: ${esc(j.deletedBy)} on ${esc(j.deletedAt || '')}` : 'Cancelled';
+    return `<span class="pill p-Cancelled" title="${tip}" style="background:#fee2e2;color:#991b1b;border:1px solid #f87171;">🚫 Deleted</span>`;
+  }
   if (status === 'Ongoing') {
     return `<span class="pill p-Ongoing">Ongoing</span>`;
   }
@@ -2399,9 +2403,6 @@ function renderStatusBadge(j) {
   }
   if (status === 'Done') {
     return `<span class="pill p-Done">Done</span>`;
-  }
-  if (status === 'Cancelled') {
-    return `<span class="pill p-Cancelled">Cancelled</span>`;
   }
   return `<span class="pill p-Pending">Pending</span>`;
 }
@@ -2597,7 +2598,10 @@ async function syncToCloud(showToast = false, replace = false) {
           actionTaken: j.actionTaken || '',
           materialsUsed: j.materialsUsed || '',
           remarks: j.remarks || '',
-          status: j.status || 'Pending'
+          status: j.status || 'Pending',
+          deletedBy: j.deletedBy || null,
+          deletedAt: j.deletedAt || null,
+          deletionReason: j.deletionReason || null
         }));
         const { error } = await supabaseClient.from('job_orders').upsert(cleanJobs);
         if (!error) supabaseSuccess = true;
@@ -2955,9 +2959,12 @@ function renderDepartmentDashboard() {
   $('deptDone').textContent = own.filter(j => j.status === 'Done').length;
 
   $('departmentJobsBody').innerHTML = own.map(j => `
-    <tr>
+    <tr style="${(j.status === 'Cancelled' || j.deletedBy) ? 'background-color: #fff1f2; opacity: 0.88;' : ''}">
       <td><b style="color: #1e3a8a;">${esc(j.jobNo)}</b></td>
-      <td>${esc(j.requester)}</td>
+      <td>
+        ${esc(j.requester)}
+        ${j.deletedBy ? `<div class="small" style="color: #b91c1c; font-weight: 700; margin-top: 4px;">🗑️ Deleted by: ${esc(j.deletedBy)} (${esc(j.deletedAt || '')})${j.deletionReason ? '<br><i>Reason: ' + esc(j.deletionReason) + '</i>' : ''}</div>` : ''}
+      </td>
       <td><b>${esc(j.area)}</b>${j.equipment ? '<br><span class="small">🏷️ ' + esc(j.equipment) + '</span>' : ''}</td>
       <td>${esc(j.details)}</td>
       <td>${esc(j.requestedAt)}</td>
@@ -2984,9 +2991,9 @@ function render() {
   const q = $('searchText').value.toLowerCase().trim();
 
   $('totalCount').textContent = jobs.length;
-  $('newCount').textContent = jobs.filter(j => (!j.receivedBy || j.status === 'Pending') && j.status !== 'Cancelled').length;
-  $('ongoingCount').textContent = jobs.filter(j => j.status === 'Ongoing').length;
-  $('doneCount').textContent = jobs.filter(j => j.status === 'Done').length;
+  $('newCount').textContent = jobs.filter(j => (!j.receivedBy || j.status === 'Pending') && j.status !== 'Cancelled' && !j.deletedBy).length;
+  $('ongoingCount').textContent = jobs.filter(j => j.status === 'Ongoing' && !j.deletedBy).length;
+  $('doneCount').textContent = jobs.filter(j => j.status === 'Done' && !j.deletedBy).length;
 
   const filtered = jobs.filter(j => {
     let pMatch = true;
@@ -3002,16 +3009,19 @@ function render() {
     return (!dept || j.department === dept) &&
            (!status || j.status === status) &&
            pMatch &&
-           (!q || [j.jobNo, j.department, j.requester, j.area, j.equipment, j.details, j.receivedBy, j.actionTaken, j.priority].join(' ').toLowerCase().includes(q));
+           (!q || [j.jobNo, j.department, j.requester, j.area, j.equipment, j.details, j.receivedBy, j.actionTaken, j.priority, j.deletedBy, j.deletionReason].join(' ').toLowerCase().includes(q));
   });
 
   $('jobsBody').innerHTML = filtered.map(j => `
-    <tr>
+    <tr style="${(j.status === 'Cancelled' || j.deletedBy) ? 'background-color: #fff1f2; opacity: 0.90;' : ''}">
       <td>
         <b style="color: #1e3a8a;">${esc(j.jobNo)}</b>
       </td>
       <td><span class="pill" style="font-weight: 700;">${esc(j.department)}</span></td>
-      <td>${esc(j.requester)}</td>
+      <td>
+        ${esc(j.requester)}
+        ${j.deletedBy ? `<div class="small" style="color: #b91c1c; font-weight: 700; margin-top: 4px;">🗑️ Deleted by: ${esc(j.deletedBy)} (${esc(j.deletedAt || '')})${j.deletionReason ? '<br><i>Reason: ' + esc(j.deletionReason) + '</i>' : ''}</div>` : ''}
+      </td>
       <td>
         <b>${esc(j.area)}</b>
         ${j.equipment ? '<br><span class="small" style="color:#0284c7;">🏷️ ' + esc(j.equipment) + '</span>' : ''}
@@ -3030,12 +3040,18 @@ function render() {
         <button class="secondary sm" onclick="openSlipModal('${j.id}')" title="Print or Download PDF Slip">
           <span>📄</span> Slip
         </button>
-        <button class="secondary sm" onclick="editJob('${j.id}')" title="Update status and receiving personnel">
-          <span>✏️</span> Edit
-        </button>
-        <button class="danger sm" onclick="deleteJob('${j.id}')" title="Delete record">
-          <span>🗑️</span>
-        </button>
+        ${(j.status === 'Cancelled' || j.deletedBy) ? `
+          <button class="secondary sm" onclick="restoreJob('${j.id}')" title="Restore this record" style="color: #047857; border-color: #a7f3d0; background: #ecfdf5;">
+            <span>↩️</span> Restore
+          </button>
+        ` : `
+          <button class="secondary sm" onclick="editJob('${j.id}')" title="Update status and receiving personnel">
+            <span>✏️</span> Edit
+          </button>
+          <button class="danger sm" onclick="deleteJob('${j.id}')" title="Mark as Deleted (Recorded in Audit Trail)">
+            <span>🗑️</span>
+          </button>
+        `}
       </td>
     </tr>
   `).join('');
@@ -3066,26 +3082,54 @@ window.editJob = id => {
   $('jobModal').classList.add('show');
 };
 
+// Permanent Audit Trail Delete (Soft Delete)
 window.deleteJob = async id => {
   const j = jobs.find(x => x.id === id);
   if (!j) return;
-  if (confirm('Are you sure you want to delete ' + j.jobNo + ' (' + j.department + ')? This action cannot be undone.')) {
-    jobs = jobs.filter(x => x.id !== id);
-    if (supabaseClient) {
-      try {
-        await supabaseClient.from('job_orders').delete().eq('id', id);
-      } catch (e) {
-        console.warn('[MHC] Supabase delete error:', e);
-      }
-    }
-    try {
-      await fetch('/api/jobs/' + encodeURIComponent(id), { method: 'DELETE' });
-    } catch(e) {}
-    await syncToCloud(true, true);
+
+  const staffName = prompt(
+    `AUDIT TRAIL: Bawal magbura nang walang rekord sa system.\n\n` +
+    `Para ma-mark bilang Deleted ang Job Order na ito:\n` +
+    `• Job No: ${j.jobNo}\n` +
+    `• Department: ${j.department}\n\n` +
+    `Pakilagay ang iyong PANGALAN (Sino ang nag-delete):`
+  );
+
+  if (!staffName || !staffName.trim()) {
+    toast('Hindi itinuloy: Kailangan ilagay ang pangalan ng nag-delete.');
+    return;
+  }
+
+  const reason = prompt(`(Opsyonal) Dahilan ng pag-delete ng ${j.jobNo}:`, '') || '';
+
+  // Soft delete: Hindi kailanman mabubura ang record! Mamarkahan lang kung sino ang nagbura.
+  j.status = 'Cancelled';
+  j.deletedBy = staffName.trim();
+  j.deletedAt = dateTimeNow();
+  j.deletionReason = reason.trim();
+
+  await syncToCloud(true);
+  render();
+  if ($('departmentDashboard') && !$('departmentDashboard').hidden) {
+    renderDepartmentDashboard();
+  }
+  toast(`✓ Nai-tala: Minarkahang Deleted ni ${j.deletedBy}.`);
+};
+
+window.restoreJob = async id => {
+  const j = jobs.find(x => x.id === id);
+  if (!j) return;
+  if (confirm(`Gusto mo bang ibalik sa Active / Pending ang Job Order na ${j.jobNo}?`)) {
+    j.status = j.receivedBy ? 'Accepted' : 'Pending';
+    j.deletedBy = null;
+    j.deletedAt = null;
+    j.deletionReason = null;
+    await syncToCloud(true);
     render();
     if ($('departmentDashboard') && !$('departmentDashboard').hidden) {
       renderDepartmentDashboard();
     }
+    toast(`✓ Naibalik sa Active ang Job Order ${j.jobNo}.`);
   }
 };
 
