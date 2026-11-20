@@ -2390,61 +2390,20 @@ function getDaysSinceAcceptance(j) {
 
 function renderStatusBadge(j) {
   const status = j.status || 'Pending';
-  const age = getDaysSinceAcceptance(j);
 
-  // If not yet accepted by engineering
-  if (!j.receivedAt && !j.acceptedAt) {
-    return `<span class="pill p-Pending" title="Submitted: ${esc(j.requestedAt || '')} - Awaiting Engineering Acceptance">Pending Receipt</span>`;
+  if (status === 'Ongoing') {
+    return `<span class="pill p-Ongoing">Ongoing</span>`;
   }
-
-  // Active statuses: Ongoing or Accepted
-  if (status === 'Ongoing' || status === 'Accepted' || status === 'Pending') {
-    let dayText = '';
-    if (age) {
-      if (age.days === 0) {
-        dayText = age.hours <= 1 ? 'Just Accepted' : age.hours + ' hrs';
-      } else if (age.days === 1) {
-        dayText = '1 day';
-      } else {
-        dayText = age.days + ' days';
-      }
-    }
-
-    // Check SLA warning according to Priority 1 (24 Hrs), Priority 2 (5 Days), Priority 3 (1 Month)
-    const pStr = String(j.priority || '');
-    let isOverdue = false;
-    if (age) {
-      if (pStr.includes('1') && age.hours >= 24) isOverdue = true;
-      else if (pStr.includes('2') && age.days >= 5) isOverdue = true;
-      else if (pStr.includes('3') && age.days >= 30) isOverdue = true;
-    }
-
-    const badgeClass = isOverdue ? 'p-Urgent' : (status === 'Ongoing' ? 'p-Ongoing' : 'p-Accepted');
-    const warningIcon = isOverdue ? '⚠️ Overdue · ' : '';
-    const titleTip = isOverdue
-      ? `Overdue! Target accomplishment SLA exceeded (${dayText} elapsed since accepted on ${esc(j.receivedAt)})`
-      : `Accepted on ${esc(j.receivedAt)} (${dayText} active)`;
-
-    return `<span class="pill ${badgeClass}" title="${titleTip}">${warningIcon}${esc(status)} (${dayText || 'Active'})</span>`;
+  if (status === 'Accepted') {
+    return `<span class="pill p-Accepted">Accepted</span>`;
   }
-
-  // Done status
   if (status === 'Done') {
-    let dur = '';
-    if (age) {
-      if (age.days === 0) dur = ' (within 24 hrs)';
-      else if (age.days === 1) dur = ' (1 day)';
-      else dur = ` (${age.days} days)`;
-    }
-    return `<span class="pill p-Done" title="Completed. Duration from acceptance: ${age ? age.days + ' days' : ''}">Done${dur}</span>`;
+    return `<span class="pill p-Done">Done</span>`;
   }
-
-  // Cancelled status
   if (status === 'Cancelled') {
     return `<span class="pill p-Cancelled">Cancelled</span>`;
   }
-
-  return `<span class="pill p-${esc(status)}">${esc(status)}</span>`;
+  return `<span class="pill p-Pending">Pending</span>`;
 }
 
 
@@ -3201,9 +3160,8 @@ window.openSlipModal = id => {
   pb.textContent = prioVal;
 
   const sb = $('slipStatusBadge');
-  const age = getDaysSinceAcceptance(j);
   sb.className = 'pill p-' + (j.status || 'Pending');
-  sb.textContent = (j.status || 'Pending') + (age ? (j.status === 'Done' ? ' (' + age.days + 'd completed)' : ' (' + age.days + 'd active)') : '');
+  sb.textContent = j.status || 'Pending';
 
   $('slipDept').textContent = j.department || '--';
   $('slipRequester').textContent = j.requester || '--';
@@ -3212,7 +3170,7 @@ window.openSlipModal = id => {
   $('slipDetails').textContent = j.details || '--';
 
   $('slipReceivedBy').textContent = j.receivedBy || 'Not yet received';
-  $('slipReceivedAt').textContent = j.receivedAt ? j.receivedAt + (age ? ' (' + age.days + ' days active)' : '') : 'Pending receipt';
+  $('slipReceivedAt').textContent = j.receivedAt || 'Pending receipt';
   $('slipTargetDate').textContent = j.targetDate || 'As scheduled / standard turn-around';
   if ($('slipReceivingComment')) {
     $('slipReceivingComment').textContent = j.receivingComment || 'None recorded';
