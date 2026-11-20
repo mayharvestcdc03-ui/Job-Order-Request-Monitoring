@@ -471,9 +471,11 @@ tr:last-child td {
   white-space: nowrap;
 }
 .p-Pending { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
-.p-Accepted { background: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; font-weight: 700; }
 .p-Ongoing { background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
 .p-Done { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+.p-Done-with-concern, .p-Concern { background: #fef3c7; color: #b45309; border: 1px solid #fcd34d; font-weight: 700; }
+.p-For-pull-out, .p-Pullout { background: #f3e8ff; color: #7e22ce; border: 1px solid #d8b4fe; font-weight: 700; }
+.p-Rework { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; font-weight: 700; }
 .p-Cancelled { background: #f1f5f9; color: #64748b; text-decoration: line-through; border: 1px solid #e2e8f0; }
 
 .p-Urgent, .p-p1 { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; font-weight: 800; }
@@ -1520,7 +1522,7 @@ footer {
         <strong id="totalCount">0</strong>
       </div>
       <div class="stat stat-pending">
-        <span>For Receiving / Pending</span>
+        <span>Pending Work</span>
         <strong id="newCount">0</strong>
       </div>
       <div class="stat stat-ongoing">
@@ -1553,6 +1555,9 @@ footer {
           <option value="Pending">Pending</option>
           <option value="Ongoing">Ongoing</option>
           <option value="Done">Done</option>
+          <option value="Done with concern">Done with concern</option>
+          <option value="For pull out">For pull out</option>
+          <option value="Rework">Rework</option>
           <option value="Cancelled">Cancelled / Deleted</option>
         </select>
       </div>
@@ -1858,12 +1863,14 @@ footer {
           <div class="small" style="color: #0284c7; margin-top: 2px;">Receiving in-charge ang nagtatakda ng urgency level.</div>
         </div>
         <div>
-          <label for="status">Job Status</label>
+          <label for="status" style="font-weight: 700; color: #1e3a8a;">Job Order Status *</label>
           <select id="status">
-            <option value="Pending">Pending (Awaiting Acceptance)</option>
-            <option value="Accepted">Accepted</option>
+            <option value="Pending">Pending</option>
             <option value="Ongoing">Ongoing</option>
             <option value="Done">Done</option>
+            <option value="Done with concern">Done with concern</option>
+            <option value="For pull out">For pull out</option>
+            <option value="Rework">Rework</option>
             <option value="Cancelled">Cancelled</option>
           </select>
         </div>
@@ -2726,16 +2733,22 @@ function renderStatusBadge(j) {
 
   if (status === 'Cancelled' || status === 'Deleted' || j.deletedBy) {
     const tip = j.deletedBy ? `Deleted by: ${esc(j.deletedBy)} on ${esc(j.deletedAt || '')}` : 'Cancelled';
-    return `<span class="pill p-Cancelled" title="${tip}" style="background:#fee2e2;color:#991b1b;border:1px solid #f87171;">🚫 Deleted</span>`;
+    return `<span class="pill p-Cancelled" title="${tip}" style="background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;">🚫 Deleted</span>`;
+  }
+  if (status === 'Done') {
+    return `<span class="pill p-Done">Done</span>`;
+  }
+  if (status === 'Done with concern') {
+    return `<span class="pill" style="background:#fef3c7; color:#b45309; border:1px solid #fcd34d; font-weight:700;">Done w/ concern</span>`;
   }
   if (status === 'Ongoing') {
     return `<span class="pill p-Ongoing">Ongoing</span>`;
   }
-  if (status === 'Accepted') {
-    return `<span class="pill p-Accepted">Accepted</span>`;
+  if (status === 'For pull out') {
+    return `<span class="pill" style="background:#f3e8ff; color:#7e22ce; border:1px solid #d8b4fe; font-weight:700;">For pull out</span>`;
   }
-  if (status === 'Done') {
-    return `<span class="pill p-Done">Done</span>`;
+  if (status === 'Rework') {
+    return `<span class="pill" style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; font-weight:700;">Rework</span>`;
   }
   return `<span class="pill p-Pending">Pending</span>`;
 }
@@ -2759,6 +2772,9 @@ const STATUS_COLORS = {
   Pending: '#f59e0b',
   Ongoing: '#2563eb',
   Done: '#10b981',
+  'Done with concern': '#d97706',
+  'For pull out': '#a855f7',
+  Rework: '#ef4444',
   Cancelled: '#94a3b8'
 };
 
@@ -3150,8 +3166,13 @@ $('requestForm').addEventListener('submit', async e => {
 
 // Pie / Donut Charts
 function pieCard(title, list) {
-  const counts = { Pending: 0, Ongoing: 0, Done: 0, Cancelled: 0 };
-  list.forEach(j => { if (counts[j.status] !== undefined) counts[j.status]++; });
+  const counts = { Pending: 0, Ongoing: 0, Done: 0, 'Done with concern': 0, 'For pull out': 0, Rework: 0, Cancelled: 0 };
+  list.forEach(j => {
+    let s = j.status || 'Pending';
+    if (s === 'Deleted') s = 'Cancelled';
+    if (counts[s] !== undefined) counts[s]++;
+    else counts.Pending++;
+  });
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
   const cx = 70, cy = 70, r = 62;
   let svg = '';
@@ -3307,7 +3328,7 @@ function renderDepartmentDashboard() {
   $('deptTotal').textContent = activeOwn.length;
   $('deptPending').textContent = activeOwn.filter(j => j.status === 'Pending').length;
   $('deptOngoing').textContent = activeOwn.filter(j => j.status === 'Ongoing').length;
-  $('deptDone').textContent = activeOwn.filter(j => j.status === 'Done').length;
+  $('deptDone').textContent = activeOwn.filter(j => j.status === 'Done' || j.status === 'Done with concern').length;
 
   $('departmentJobsBody').innerHTML = activeOwn.map(j => `
     <tr>
@@ -3381,9 +3402,9 @@ function render() {
   // Active records counts for top stats cards
   const allActive = jobs.filter(j => j.status !== 'Cancelled' && !j.deletedBy);
   $('totalCount').textContent = allActive.length;
-  $('newCount').textContent = allActive.filter(j => (!j.receivedBy || j.status === 'Pending')).length;
+  $('newCount').textContent = allActive.filter(j => j.status === 'Pending').length;
   $('ongoingCount').textContent = allActive.filter(j => j.status === 'Ongoing').length;
-  $('doneCount').textContent = allActive.filter(j => j.status === 'Done').length;
+  $('doneCount').textContent = allActive.filter(j => j.status === 'Done' || j.status === 'Done with concern').length;
 
   const matchesFilter = j => {
     let pMatch = true;
@@ -3648,7 +3669,7 @@ window.restoreJob = async id => {
   const j = jobs.find(x => x.id === id);
   if (!j) return;
   if (confirm(`Gusto mo bang ibalik sa Active / Pending ang Job Order na ${j.jobNo}?`)) {
-    j.status = j.receivedBy ? 'Accepted' : 'Pending';
+    j.status = 'Pending';
     j.deletedBy = null;
     j.deletedAt = null;
     j.deletionReason = null;
@@ -3689,13 +3710,7 @@ $('updateForm').addEventListener('submit', async e => {
   j.receivingComment = $('receivingComment').value.trim();
   j.priority = $('priority').value;
 
-  const newStatus = $('status').value;
-  // If receiving for first time and status was still Pending, transition to Ongoing automatically
-  if (receiver && j.status === 'Pending' && newStatus === 'Pending') {
-    j.status = 'Ongoing';
-  } else {
-    j.status = newStatus;
-  }
+  j.status = $('status').value || 'Pending';
 
   // Record completion date if status set to Done
   if (j.status === 'Done' && !j.completedAt) {
@@ -3759,7 +3774,7 @@ window.openSlipModal = id => {
   pb.textContent = prioVal;
 
   const sb = $('slipStatusBadge');
-  sb.className = 'pill p-' + (j.status || 'Pending');
+  sb.className = 'pill p-' + (j.status || 'Pending').replace(/\s+/g, '-');
   sb.textContent = j.status || 'Pending';
 
   $('slipDept').textContent = j.department || '--';
