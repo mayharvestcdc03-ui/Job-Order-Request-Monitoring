@@ -430,7 +430,7 @@ button.sm {
 table {
   border-collapse: collapse;
   width: 100%;
-  min-width: 1100px;
+  min-width: 1250px;
   font-size: 13px;
 }
 th, td {
@@ -480,6 +480,7 @@ tr:last-child td {
 .p-High, .p-p2 { background: #ffedd5; color: #c2410c; border: 1px solid #fdba74; font-weight: 700; }
 .p-Normal, .p-p3 { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; font-weight: 600; }
 .p-Low, .p-p4 { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; font-weight: 600; }
+.p-pending-prio { background: #f8fafc; color: #64748b; border: 1px dashed #cbd5e1; font-weight: 600; }
 
 .small { font-size: 12px; color: var(--muted); }
 .empty { text-align: center; color: var(--muted); padding: 36px 20px; font-weight: 500; }
@@ -1457,13 +1458,35 @@ footer {
           <input id="targetDate" type="date">
         </div>
 
-        <div>
-          <label for="priorityReq">Initial Urgency / Priority</label>
-          <select id="priorityReq">
-            <option value="Priority # 1 - May affect product safety and legality. Shall be accomplished within 24 Hrs.">Priority # 1 - May affect product safety and legality. Shall be accomplished within 24 Hrs.</option>
-            <option value="Priority # 2 - May affect process performance and product quality but not product safety/ legality. Shall be accomplished within 5 days.">Priority # 2 - May affect process performance and product quality but not product safety/ legality. Shall be accomplished within 5 days.</option>
-            <option value="Priority # 3 - No direct impact to the product, process safety and legality. Shall be accomplished within 1 month" selected>Priority # 3 - No direct impact to the product, process safety and legality. Shall be accomplished within 1 month</option>
-          </select>
+        <div class="full" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; margin-top: 4px;">
+          <label style="font-weight: 700; color: #1e293b; display: block; margin-bottom: 4px;">
+            Nature / Probable Cause of Problem (Check applicable):
+          </label>
+          <div class="small" style="color: #64748b; margin-bottom: 10px;">
+            Pumili ng isa o higit pang angkop na dahilan o sanhi ng problema. (Ang pinal na Priority Level ay itatakda ng Engineering receiving team).
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 8px;">
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; background: white; padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-weight: 600; color: #334155;">
+              <input type="checkbox" name="reqProblemCause" value="Wear and tear from continuous operation" style="width: auto; cursor: pointer;">
+              <span>1. Wear and tear from continuous operation</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; background: white; padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-weight: 600; color: #334155;">
+              <input type="checkbox" name="reqProblemCause" value="Improper operation" style="width: auto; cursor: pointer;">
+              <span>2. Improper operation</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; background: white; padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-weight: 600; color: #334155;">
+              <input type="checkbox" name="reqProblemCause" value="Incorrect machine setup or adjustment" style="width: auto; cursor: pointer;">
+              <span>3. Incorrect machine setup or adjustment</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; background: white; padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-weight: 600; color: #334155;">
+              <input type="checkbox" name="reqProblemCause" value="Electrical and sensor failure" style="width: auto; cursor: pointer;">
+              <span>4. Electrical and sensor failure</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; background: white; padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-weight: 600; color: #334155;">
+              <input type="checkbox" name="reqProblemCause" value="Operator handling errors" style="width: auto; cursor: pointer;">
+              <span>5. Operator handling errors</span>
+            </label>
+          </div>
         </div>
 
         <div class="full">
@@ -1537,6 +1560,7 @@ footer {
         <label for="filterPriority">Priority</label>
         <select id="filterPriority">
           <option value="">All Priorities</option>
+          <option value="unassigned">⏳ For Prioritization (Unassigned)</option>
           <option value="Priority # 1">Priority # 1 (Within 24 Hrs)</option>
           <option value="Priority # 2">Priority # 2 (Within 5 Days)</option>
           <option value="Priority # 3">Priority # 3 (Within 1 Month)</option>
@@ -1580,7 +1604,7 @@ footer {
             <th>Department</th>
             <th>Requested By</th>
             <th>Area / Equipment</th>
-            <th>Details of Request</th>
+            <th style="min-width: 340px; width: 28%;">Details of Request</th>
             <th>Date Requested</th>
             <th>Received By & Date</th>
             <th>Priority</th>
@@ -1615,7 +1639,7 @@ footer {
               <th>Department</th>
               <th>Requested By</th>
               <th>Area / Equipment</th>
-              <th>Details of Request</th>
+              <th style="min-width: 320px; width: 26%;">Details of Request</th>
               <th>Date Requested</th>
               <th style="color: #b91c1c;">Deleted By & Date</th>
               <th style="color: #b91c1c;">Reason</th>
@@ -1665,7 +1689,7 @@ footer {
             <th>Job Order No.</th>
             <th>Requested By</th>
             <th>Area / Equipment</th>
-            <th>Details of Request</th>
+            <th style="min-width: 340px; width: 30%;">Details of Request</th>
             <th>Date Requested</th>
             <th>Date Received</th>
             <th>Priority</th>
@@ -1692,7 +1716,7 @@ footer {
               <th>Job Order No.</th>
               <th>Requested By</th>
               <th>Area / Equipment</th>
-              <th>Details of Request</th>
+              <th style="min-width: 320px; width: 28%;">Details of Request</th>
               <th>Date Requested</th>
               <th style="color: #b91c1c;">Deleted By & Date</th>
               <th style="color: #b91c1c;">Reason</th>
@@ -1793,6 +1817,11 @@ footer {
       <input type="hidden" id="editId">
 
       <!-- Submission Date vs Acceptance Date -->
+      <div id="modalCausesBox" style="margin-bottom: 14px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 14px; display: none;">
+        <span style="font-size: 11.5px; font-weight: 700; color: #1e40af; text-transform: uppercase;">⚙️ Reported Cause / Nature of Problem:</span>
+        <div id="modalCausesText" style="font-size: 13.5px; font-weight: 600; color: #0369a1; margin-top: 3px;"></div>
+      </div>
+
       <div class="grid grid-2" style="margin-bottom: 14px; background: #f8fafc; padding: 12px 14px; border-radius: 8px; border: 1px solid #e2e8f0;">
         <div>
           <label style="font-size: 11.5px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 3px;">Submission Date (Date Requested)</label>
@@ -1819,12 +1848,14 @@ footer {
 
       <div class="grid grid-2" style="margin-bottom: 14px;">
         <div>
-          <label for="priority">Priority Level</label>
+          <label for="priority" style="font-weight: 700; color: #1e3a8a;">Priority Level (Assigned by Receiving) *</label>
           <select id="priority">
-            <option value="Priority # 1 - May affect product safety and legality. Shall be accomplished within 24 Hrs.">Priority # 1 - May affect product safety and legality. Shall be accomplished within 24 Hrs.</option>
-            <option value="Priority # 2 - May affect process performance and product quality but not product safety/ legality. Shall be accomplished within 5 days.">Priority # 2 - May affect process performance and product quality but not product safety/ legality. Shall be accomplished within 5 days.</option>
-            <option value="Priority # 3 - No direct impact to the product, process safety and legality. Shall be accomplished within 1 month">Priority # 3 - No direct impact to the product, process safety and legality. Shall be accomplished within 1 month</option>
+            <option value="">-- Pumili ng Priority Level --</option>
+            <option value="Priority # 1 - May affect product safety and legality. Shall be accomplished within 24 Hrs.">Priority # 1 (24 Hrs) - May affect product safety & legality</option>
+            <option value="Priority # 2 - May affect process performance and product quality but not product safety/ legality. Shall be accomplished within 5 days.">Priority # 2 (5 Days) - May affect process/quality</option>
+            <option value="Priority # 3 - No direct impact to the product, process safety and legality. Shall be accomplished within 1 month">Priority # 3 (1 Month) - Minor / No direct impact</option>
           </select>
+          <div class="small" style="color: #0284c7; margin-top: 2px;">Receiving in-charge ang nagtatakda ng urgency level.</div>
         </div>
         <div>
           <label for="status">Job Status</label>
@@ -1940,6 +1971,10 @@ footer {
             <label>Equipment / Asset Tag</label>
             <div class="val" id="slipEquipment">--</div>
           </div>
+        </div>
+        <div class="slip-cell">
+          <label>Reported Nature / Probable Cause of Malfunction</label>
+          <div class="val" id="slipCauses" style="font-weight: 600; color: #1e3a8a;">--</div>
         </div>
         <div class="slip-cell border-b-0">
           <label>Details of Problem / Nature of Work Requested</label>
@@ -2382,16 +2417,16 @@ let currentSlipJob = null;
 
 // Priority helper functions (Priority # 1, Priority # 2, Priority # 3)
 function getPriorityClass(p) {
-  if (!p) return 'p-p3';
+  if (!p) return 'p-pending-prio';
   const str = String(p);
   if (str.includes('1') || str === 'Urgent') return 'p-p1';
   if (str.includes('2') || str === 'High') return 'p-p2';
   if (str.includes('3') || str === 'Normal') return 'p-p3';
-  return 'p-p3';
+  return 'p-pending-prio';
 }
 
 function formatPriorityBadge(p) {
-  if (!p) return 'Priority # 3';
+  if (!p) return '⏳ For Prioritization';
   const str = String(p);
   if (str.includes('1') || str === 'Urgent') return 'Priority # 1 (24 Hrs)';
   if (str.includes('2') || str === 'High') return 'Priority # 2 (5 Days)';
@@ -2400,12 +2435,12 @@ function formatPriorityBadge(p) {
 }
 
 function matchPriorityValue(p) {
-  if (!p) return 'Priority # 3 - No direct impact to the product, process safety and legality. Shall be accomplished within 1 month';
+  if (!p) return '';
   const str = String(p);
   if (str.includes('1') || str === 'Urgent') return 'Priority # 1 - May affect product safety and legality. Shall be accomplished within 24 Hrs.';
   if (str.includes('2') || str === 'High') return 'Priority # 2 - May affect process performance and product quality but not product safety/ legality. Shall be accomplished within 5 days.';
   if (str.includes('3') || str === 'Normal') return 'Priority # 3 - No direct impact to the product, process safety and legality. Shall be accomplished within 1 month';
-  return p;
+  return str;
 }
 
 // Date Parsing and Acceptance Aging Calculator
@@ -2655,6 +2690,7 @@ async function syncToCloud(showToast = false, replace = false) {
           targetDate: j.targetDate || '',
           priority: j.priority || '',
           details: j.details || '',
+          problemCauses: j.problemCauses || '',
           requestedAt: j.requestedAt || '',
           receivedBy: j.receivedBy || '',
           receivedAt: j.receivedAt || '',
@@ -2836,6 +2872,10 @@ $('requestForm').addEventListener('submit', async e => {
   e.preventDefault();
   const dept = $('department').value;
   const newJobNo = nextNumber(dept);
+  const selectedCauses = Array.from(document.querySelectorAll('input[name="reqProblemCause"]:checked'))
+    .map(cb => cb.value)
+    .join(', ');
+
   const job = {
     id: crypto.randomUUID ? crypto.randomUUID() : 'jo_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
     jobNo: newJobNo,
@@ -2844,7 +2884,8 @@ $('requestForm').addEventListener('submit', async e => {
     area: $('area').value.trim(),
     equipment: $('equipment').value.trim() || 'General Facility',
     targetDate: $('targetDate').value || '',
-    priority: $('priorityReq').value || 'Priority # 3 - No direct impact to the product, process safety and legality. Shall be accomplished within 1 month',
+    priority: '', // Assigned by Receiving in-charge
+    problemCauses: selectedCauses,
     details: $('details').value.trim(),
     requestedAt: dateTimeNow(),
     receivedBy: '',
@@ -3037,7 +3078,12 @@ function renderDepartmentDashboard() {
       <td><b style="color: #1e3a8a;">${esc(j.jobNo)}</b></td>
       <td>${esc(j.requester)}</td>
       <td><b>${esc(j.area)}</b>${j.equipment ? '<br><span class="small">🏷️ ' + esc(j.equipment) + '</span>' : ''}</td>
-      <td>${esc(j.details)}</td>
+      <td style="min-width: 340px; max-width: 520px; word-break: break-word; line-height: 1.45;">
+        <div style="font-weight: 500; color: #0f172a;">${esc(j.details)}</div>
+        ${j.problemCauses ? `<div style="margin-top: 6px; font-size: 11.5px; line-height: 1.35; color: #334155; background: #f1f5f9; padding: 4px 8px; border-radius: 6px; border: 1px solid #e2e8f0;">
+          <b style="color: #0369a1;">⚙️ Cause/Nature:</b> ${esc(j.problemCauses)}
+        </div>` : ''}
+      </td>
       <td>${esc(j.requestedAt)}</td>
       <td>${esc(j.receivedAt) || '<span class="small" style="color: #94a3b8;">Pending Receipt</span>'}</td>
       <td><span class="pill ${getPriorityClass(j.priority)}" title="${esc(j.priority || '')}">${esc(formatPriorityBadge(j.priority))}</span></td>
@@ -3063,7 +3109,12 @@ function renderDepartmentDashboard() {
           <td><b style="color: #991b1b;">${esc(j.jobNo)}</b></td>
           <td>${esc(j.requester)}</td>
           <td><b>${esc(j.area)}</b>${j.equipment ? '<br><span class="small">🏷️ ' + esc(j.equipment) + '</span>' : ''}</td>
-          <td>${esc(j.details)}</td>
+          <td style="min-width: 320px; max-width: 480px; word-break: break-word; line-height: 1.45;">
+            <div style="font-weight: 500; color: #0f172a;">${esc(j.details)}</div>
+            ${j.problemCauses ? `<div style="margin-top: 6px; font-size: 11.5px; line-height: 1.35; color: #334155; background: #fee2e2; padding: 4px 8px; border-radius: 6px; border: 1px solid #fecaca;">
+              <b style="color: #991b1b;">⚙️ Cause/Nature:</b> ${esc(j.problemCauses)}
+            </div>` : ''}
+          </td>
           <td>${esc(j.requestedAt)}</td>
           <td style="color: #b91c1c; font-weight: 600;">
             <div>👤 ${esc(j.deletedBy || 'System')}</div>
@@ -3101,18 +3152,22 @@ function render() {
   const matchesFilter = j => {
     let pMatch = true;
     if (priority) {
-      const pVal = String(j.priority || '');
-      pMatch = pVal === priority ||
-               pVal.startsWith(priority) ||
-               (priority.includes('1') && (pVal.includes('1') || pVal === 'Urgent')) ||
-               (priority.includes('2') && (pVal.includes('2') || pVal === 'High')) ||
-               (priority.includes('3') && (pVal.includes('3') || pVal === 'Normal'));
+      if (priority === 'unassigned') {
+        pMatch = !j.priority;
+      } else {
+        const pVal = String(j.priority || '');
+        pMatch = pVal === priority ||
+                 pVal.startsWith(priority) ||
+                 (priority.includes('1') && (pVal.includes('1') || pVal === 'Urgent')) ||
+                 (priority.includes('2') && (pVal.includes('2') || pVal === 'High')) ||
+                 (priority.includes('3') && (pVal.includes('3') || pVal === 'Normal'));
+      }
     }
 
     return (!dept || j.department === dept) &&
            (!status || j.status === status) &&
            pMatch &&
-           (!q || [j.jobNo, j.department, j.requester, j.area, j.equipment, j.details, j.receivedBy, j.actionTaken, j.priority, j.deletedBy, j.deletionReason].join(' ').toLowerCase().includes(q));
+           (!q || [j.jobNo, j.department, j.requester, j.area, j.equipment, j.details, j.problemCauses, j.receivedBy, j.actionTaken, j.priority, j.deletedBy, j.deletionReason].join(' ').toLowerCase().includes(q));
   };
 
   const filtered = jobs.filter(matchesFilter);
@@ -3131,9 +3186,12 @@ function render() {
         <b>${esc(j.area)}</b>
         ${j.equipment ? '<br><span class="small" style="color:#0284c7;">🏷️ ' + esc(j.equipment) + '</span>' : ''}
       </td>
-      <td style="max-width: 280px; word-break: break-word;">
-        ${esc(j.details)}
-        ${j.actionTaken ? '<br><span class="small" style="color:#059669;"><b>Action:</b> ' + esc(j.actionTaken) + '</span>' : ''}
+      <td style="min-width: 340px; max-width: 520px; word-break: break-word; line-height: 1.45;">
+        <div style="font-weight: 500; color: #0f172a;">${esc(j.details)}</div>
+        ${j.problemCauses ? `<div style="margin-top: 6px; font-size: 11.5px; line-height: 1.35; color: #334155; background: #f1f5f9; padding: 4px 8px; border-radius: 6px; border: 1px solid #e2e8f0;">
+          <b style="color: #0369a1;">⚙️ Cause/Nature:</b> ${esc(j.problemCauses)}
+        </div>` : ''}
+        ${j.actionTaken ? '<div class="small" style="color:#059669; margin-top: 4px;"><b>Action:</b> ' + esc(j.actionTaken) + '</div>' : ''}
       </td>
       <td style="white-space: nowrap;">${esc(j.requestedAt)}</td>
       <td>
@@ -3161,7 +3219,7 @@ function render() {
   const deletedJobs = jobs.filter(j => (j.status === 'Cancelled' || !!j.deletedBy) &&
     (!dept || j.department === dept) &&
     (!status || status === 'Cancelled' || j.status === status) &&
-    (!q || [j.jobNo, j.department, j.requester, j.area, j.equipment, j.details, j.receivedBy, j.actionTaken, j.priority, j.deletedBy, j.deletionReason].join(' ').toLowerCase().includes(q))
+    (!q || [j.jobNo, j.department, j.requester, j.area, j.equipment, j.details, j.problemCauses, j.receivedBy, j.actionTaken, j.priority, j.deletedBy, j.deletionReason].join(' ').toLowerCase().includes(q))
   );
 
   // Sort deleted: Newest deleted first!
@@ -3192,9 +3250,12 @@ function render() {
             <b>${esc(j.area)}</b>
             ${j.equipment ? '<br><span class="small" style="color:#0284c7;">🏷️ ' + esc(j.equipment) + '</span>' : ''}
           </td>
-          <td style="max-width: 250px; word-break: break-word;">
-            ${esc(j.details)}
-            ${j.actionTaken ? '<br><span class="small" style="color:#059669;"><b>Action:</b> ' + esc(j.actionTaken) + '</span>' : ''}
+          <td style="min-width: 320px; max-width: 480px; word-break: break-word; line-height: 1.45;">
+            <div style="font-weight: 500; color: #0f172a;">${esc(j.details)}</div>
+            ${j.problemCauses ? `<div style="margin-top: 6px; font-size: 11.5px; line-height: 1.35; color: #334155; background: #fee2e2; padding: 4px 8px; border-radius: 6px; border: 1px solid #fecaca;">
+              <b style="color: #991b1b;">⚙️ Cause/Nature:</b> ${esc(j.problemCauses)}
+            </div>` : ''}
+            ${j.actionTaken ? '<div class="small" style="color:#059669; margin-top: 4px;"><b>Action:</b> ' + esc(j.actionTaken) + '</div>' : ''}
           </td>
           <td style="white-space: nowrap;">${esc(j.requestedAt)}</td>
           <td style="white-space: nowrap; color: #b91c1c; font-weight: 600;">
@@ -3250,6 +3311,16 @@ window.editJob = id => {
   $('actionTaken').value = j.actionTaken || '';
   $('materialsUsed').value = j.materialsUsed || '';
   $('remarks').value = j.remarks || '';
+
+  if ($('modalCausesBox') && $('modalCausesText')) {
+    if (j.problemCauses) {
+      $('modalCausesBox').style.display = 'block';
+      $('modalCausesText').textContent = j.problemCauses;
+    } else {
+      $('modalCausesBox').style.display = 'none';
+    }
+  }
+
   $('jobModal').classList.add('show');
 };
 
@@ -3383,6 +3454,9 @@ window.openSlipModal = id => {
   $('slipArea').textContent = j.area || '--';
   $('slipEquipment').textContent = j.equipment || 'General Facility / Utility';
   $('slipDetails').textContent = j.details || '--';
+  if ($('slipCauses')) {
+    $('slipCauses').textContent = j.problemCauses || 'None specified / General concern';
+  }
 
   $('slipReceivedBy').textContent = j.receivedBy || 'Not yet received';
   $('slipReceivedAt').textContent = j.receivedAt || 'Pending receipt';
@@ -3463,8 +3537,8 @@ $('btnDownloadSlipPdf').addEventListener('click', () => {
 
 // Export CSV
 $('exportCsv').addEventListener('click', () => {
-  const cols = ['jobNo', 'department', 'requester', 'area', 'equipment', 'details', 'requestedAt', 'receivedBy', 'receivedAt', 'targetDate', 'priority', 'status', 'actionTaken', 'materialsUsed', 'remarks', 'deletedBy', 'deletedAt', 'deletionReason'];
-  const headers = ['Job Order No', 'Department', 'Requested By', 'Area', 'Equipment', 'Details of Request', 'Date Requested', 'Received By', 'Date Received', 'Target Date', 'Priority', 'Status', 'Action Taken', 'Materials Used', 'Remarks', 'Deleted By', 'Date Deleted', 'Deletion Reason'];
+  const cols = ['jobNo', 'department', 'requester', 'area', 'equipment', 'details', 'problemCauses', 'requestedAt', 'receivedBy', 'receivedAt', 'targetDate', 'priority', 'status', 'actionTaken', 'materialsUsed', 'remarks', 'deletedBy', 'deletedAt', 'deletionReason'];
+  const headers = ['Job Order No', 'Department', 'Requested By', 'Area', 'Equipment', 'Details of Request', 'Nature / Cause of Problem', 'Date Requested', 'Received By', 'Date Received', 'Target Date', 'Priority', 'Status', 'Action Taken', 'Materials Used', 'Remarks', 'Deleted By', 'Date Deleted', 'Deletion Reason'];
   const csv = [
     headers.join(','),
     ...jobs.map(j => cols.map(k => '"' + String(j[k] ?? '').replace(/"/g, '""') + '"').join(','))
