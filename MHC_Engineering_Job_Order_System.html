@@ -1884,6 +1884,118 @@ footer {
         <input id="remarks" placeholder="Additional notes or recommendations">
       </div>
 
+      <!-- Repair Activity & E&M Verification (Portion from Physical Form) -->
+      <details id="modalRepairDetails" style="margin-bottom: 18px; border: 1.5px solid #0284c7; border-radius: 8px; background: #f0f9ff; padding: 10px 14px;">
+        <summary style="font-weight: 800; color: #0369a1; cursor: pointer; font-size: 13.5px; user-select: none;">
+          🛠️ Log of Tools, PPEs, Repair Activity & Sanitation Handover (I-click para buksan/i-fill out)
+        </summary>
+        
+        <div style="margin-top: 14px;">
+          <!-- 1. PPE & Handwashing -->
+          <div style="background: white; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px; margin-bottom: 12px;">
+            <label style="font-weight: 700; color: #0f172a; margin-bottom: 6px; display: block; font-size: 13px;">1. PPE's Used & Handwashing (by E&M Personnel)</label>
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 8px;">
+              <label style="display:inline-flex; align-items:center; gap:5px; font-size:12px; cursor:pointer;"><input type="checkbox" id="mPpeBonet"> BONET</label>
+              <label style="display:inline-flex; align-items:center; gap:5px; font-size:12px; cursor:pointer;"><input type="checkbox" id="mPpeBoots"> BOOTS</label>
+              <label style="display:inline-flex; align-items:center; gap:5px; font-size:12px; cursor:pointer;"><input type="checkbox" id="mPpeMask"> FACE MASK</label>
+              <label style="display:inline-flex; align-items:center; gap:5px; font-size:12px; cursor:pointer;"><input type="checkbox" id="mPpeApron"> APRON</label>
+              <label style="display:inline-flex; align-items:center; gap:5px; font-size:12px; cursor:pointer;"><input type="checkbox" id="mPpeGown"> LAB GOWN</label>
+              <label style="display:inline-flex; align-items:center; gap:5px; font-size:12px; cursor:pointer;"><input type="checkbox" id="mPpeGloves"> GLOVES</label>
+            </div>
+            <div style="display:flex; align-items:center; gap:16px; font-size:12px; border-top: 1px dashed #e2e8f0; padding-top: 6px;">
+              <span><b>Handwashing:</b></span>
+              <label style="display:inline-flex; align-items:center; gap:4px; cursor:pointer;"><input type="radio" name="mHandwashing" value="Yes" checked> Yes</label>
+              <label style="display:inline-flex; align-items:center; gap:4px; cursor:pointer;"><input type="radio" name="mHandwashing" value="N/A"> N/A</label>
+            </div>
+          </div>
+
+          <!-- 2. Repair Status & Completion -->
+          <div style="background: white; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px; margin-bottom: 12px;">
+            <label style="font-weight: 700; color: #0f172a; margin-bottom: 6px; display: block; font-size: 13px;">2. Details of Repair & Status (by E&M Personnel)</label>
+            <div class="grid grid-2" style="margin-bottom: 8px;">
+              <div>
+                <label style="font-size: 11px; text-transform: uppercase;">Repair Status</label>
+                <select id="mRepairStatus">
+                  <option value="Done">Done</option>
+                  <option value="Done with concern">Done with concern</option>
+                  <option value="Pending">Pending</option>
+                  <option value="For pull out">For pull out</option>
+                  <option value="Rework">Rework</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size: 11px; text-transform: uppercase;">Date Completed</label>
+                <input id="mRepairDateCompleted" type="date">
+              </div>
+            </div>
+
+            <div style="margin-top: 8px; border-top: 1px dashed #e2e8f0; padding-top: 8px;">
+              <label style="font-size: 11px; text-transform: uppercase; font-weight: 700;">Rework / Follow-up Details (If applicable)</label>
+              <input id="mReworkDetails" placeholder="Details of rework or follow-up needed...">
+              <div class="grid grid-2" style="margin-top: 6px;">
+                <div>
+                  <label style="font-size: 10px; text-transform: uppercase;">Follow-up Date</label>
+                  <input id="mFollowUpDate" type="date">
+                </div>
+                <div>
+                  <label style="font-size: 10px; text-transform: uppercase;">Follow-up Status</label>
+                  <select id="mFollowUpStatus">
+                    <option value="">-- None --</option>
+                    <option value="Done">Done</option>
+                    <option value="Done with concern">Done with concern</option>
+                    <option value="Pending">Pending</option>
+                    <option value="For pull out">For pull out</option>
+                    <option value="Rework">Rework</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Sanitation Handover (by process owner) -->
+          <div style="background: white; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px; margin-bottom: 12px;">
+            <label style="font-weight: 700; color: #0f172a; margin-bottom: 6px; display: block; font-size: 13px;">
+              3. Sanitation Handover (by process owner)
+            </label>
+            <div style="display:flex; align-items:center; gap:16px; font-size:12px; margin-bottom: 8px;">
+              <span><b>Was equipment cleaned and sanitized?</b></span>
+              <label style="display:inline-flex; align-items:center; gap:4px; cursor:pointer;"><input type="radio" name="mCleanedSanitized" value="Yes" checked> YES</label>
+              <label style="display:inline-flex; align-items:center; gap:4px; cursor:pointer;"><input type="radio" name="mCleanedSanitized" value="No"> NO</label>
+            </div>
+            
+            <label style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: #475569;">Cleaning Chemicals Used (Check all that apply):</label>
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; margin: 4px 0 8px;">
+              <label style="display:inline-flex; align-items:center; gap:5px; font-size:12px; cursor:pointer;"><input type="checkbox" id="mChemLeader"> LEADER 3%</label>
+              <label style="display:inline-flex; align-items:center; gap:5px; font-size:12px; cursor:pointer;"><input type="checkbox" id="mChemTechno"> TECHNO DET 1% - 3%</label>
+              <label style="display:inline-flex; align-items:center; gap:5px; font-size:12px; cursor:pointer;"><input type="checkbox" id="mChemAllFresh"> ALL FRESH 200 ppm</label>
+              <label style="display:inline-flex; align-items:center; gap:5px; font-size:12px; cursor:pointer;"><input type="checkbox" id="mChemSodiumHypo"> SODIUM HYPOCHLORITE 200ppm</label>
+            </div>
+
+            <label style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: #475569;">Specific Equipment / Parts Cleaned and Sanitized:</label>
+            <input id="mSanitizedParts" placeholder="e.g. Conveyor belt, chute, hopper, blade cover">
+          </div>
+
+          <!-- 4. Sign-offs / Crew in-charge -->
+          <div style="background: white; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px;">
+            <label style="font-weight: 700; color: #0f172a; margin-bottom: 6px; display: block; font-size: 13px;">4. Verification Personnel</label>
+            <div class="grid grid-3">
+              <div>
+                <label style="font-size: 10.5px; text-transform: uppercase;">Performed by (E&M Crew)</label>
+                <input id="mCrewPerformed" placeholder="E&M Crew name">
+              </div>
+              <div>
+                <label style="font-size: 10.5px; text-transform: uppercase;">Verified by (E&M Team Leader)</label>
+                <input id="mLeaderVerified" placeholder="E&M Leader name">
+              </div>
+              <div>
+                <label style="font-size: 10.5px; text-transform: uppercase;">Accepted by (PLI/Dept Leader)</label>
+                <input id="mDeptAccepted" placeholder="Dept Leader name">
+              </div>
+            </div>
+          </div>
+        </div>
+      </details>
+
       <div class="actions">
         <button type="submit" class="success">
           <span>💾</span> Save & Sync Update
@@ -2019,38 +2131,161 @@ footer {
         </div>
       </div>
 
-      <!-- Section C: Signatures & Authorizations -->
-      <div class="slip-sigs">
-        <div class="slip-sig-box">
-          <div class="slip-sig-title">1. REQUESTED BY</div>
-          <div class="slip-sig-space">
-            <span class="slip-sig-seal">Digitally Authenticated</span>
+      <!-- Section C: Log of Tools, Paraphernalia, PPEs & Repair Activity (MHC-ENG-JO-01 Official Standard) -->
+      <div class="slip-sec">
+        <div class="slip-sec-title">SECTION C: LOG OF TOOLS, MAINTENANCE PARAPHERNALIA, SPARE PARTS, CLEANING CHEMICALS AND PPE's (by E&M personnel)</div>
+        
+        <!-- Top: Tools Table (Left) + PPEs & Handwashing (Right) -->
+        <div style="display: grid; grid-template-columns: 2fr 1.15fr; border-bottom: 1px solid #0f172a;">
+          <!-- Tools & Lubricants Table -->
+          <div style="border-right: 1px solid #0f172a;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 10.5px; min-width: 100%;">
+              <thead>
+                <tr style="background: #f8fafc; border-bottom: 1px solid #0f172a;">
+                  <th style="padding: 4px 6px; font-size: 10px; width: 44%; text-transform: none;">Tools and consumables</th>
+                  <th style="padding: 4px 6px; font-size: 10px; text-align: center; width: 14%; text-transform: none;">Pcs. In</th>
+                  <th style="padding: 4px 6px; font-size: 10px; text-align: center; width: 14%; text-transform: none;">Pcs. Out</th>
+                  <th style="padding: 4px 6px; font-size: 9px; text-align: center; width: 28%; text-transform: none; line-height: 1.2;">Condition<br><span style="font-size:8px; font-weight:normal;">Write ✓ good, Write x damaged</span></th>
+                </tr>
+              </thead>
+              <tbody id="slipToolsTableBody">
+                <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 3px 6px;">1. <span id="slipTool1"></span></td><td style="text-align:center;"></td><td style="text-align:center;"></td><td style="text-align:center;"></td></tr>
+                <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 3px 6px;">2. <span id="slipTool2"></span></td><td style="text-align:center;"></td><td style="text-align:center;"></td><td style="text-align:center;"></td></tr>
+                <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 3px 6px;">3. <span id="slipTool3"></span></td><td style="text-align:center;"></td><td style="text-align:center;"></td><td style="text-align:center;"></td></tr>
+                <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 3px 6px;">4.</td><td style="text-align:center;"></td><td style="text-align:center;"></td><td style="text-align:center;"></td></tr>
+                <tr style="border-bottom: 1px solid #0f172a;"><td style="padding: 3px 6px;">5.</td><td style="text-align:center;"></td><td style="text-align:center;"></td><td style="text-align:center;"></td></tr>
+                <tr style="background: #f8fafc; font-weight: 700; border-bottom: 1px solid #0f172a;">
+                  <td style="padding: 3px 6px;">Lubricants</td>
+                  <td style="padding: 3px 6px; text-align: center;">L/ML</td>
+                  <td style="padding: 3px 6px; text-align: center;">L/ML</td>
+                  <td style="padding: 3px 6px; text-align: center;">Condition</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #e2e8f0;"><td style="padding: 3px 6px;">1.</td><td style="text-align:center;"></td><td style="text-align:center;"></td><td style="text-align:center;"></td></tr>
+                <tr><td style="padding: 3px 6px;">2.</td><td style="text-align:center;"></td><td style="text-align:center;"></td><td style="text-align:center;"></td></tr>
+              </tbody>
+            </table>
           </div>
-          <div class="slip-sig-line">
-            <div class="slip-sig-name" id="sigRequesterName">--</div>
-            <div class="slip-sig-role">Requesting Department Personnel</div>
+
+          <!-- PPE's & Handwashing Box -->
+          <div style="padding: 6px 10px; font-size: 11px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div style="font-weight: 800; font-size: 10.5px; border-bottom: 1px solid #0f172a; padding-bottom: 2px; margin-bottom: 5px; text-transform: uppercase;">PPE's</div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; font-size: 10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;"><span>• BONET</span> <span id="slipPpeBonet" style="border: 1px solid #0f172a; width: 14px; height: 14px; display:inline-flex; align-items:center; justify-content:center; font-weight:bold; font-size:10px;"></span></div>
+                <div style="display:flex; justify-content:space-between; align-items:center;"><span>• BOOTS</span> <span id="slipPpeBoots" style="border: 1px solid #0f172a; width: 14px; height: 14px; display:inline-flex; align-items:center; justify-content:center; font-weight:bold; font-size:10px;"></span></div>
+                <div style="display:flex; justify-content:space-between; align-items:center;"><span>• FACE MASK</span> <span id="slipPpeMask" style="border: 1px solid #0f172a; width: 14px; height: 14px; display:inline-flex; align-items:center; justify-content:center; font-weight:bold; font-size:10px;"></span></div>
+                <div style="display:flex; justify-content:space-between; align-items:center;"><span>• APRON</span> <span id="slipPpeApron" style="border: 1px solid #0f172a; width: 14px; height: 14px; display:inline-flex; align-items:center; justify-content:center; font-weight:bold; font-size:10px;"></span></div>
+                <div style="display:flex; justify-content:space-between; align-items:center;"><span>• LAB GOWN</span> <span id="slipPpeGown" style="border: 1px solid #0f172a; width: 14px; height: 14px; display:inline-flex; align-items:center; justify-content:center; font-weight:bold; font-size:10px;"></span></div>
+                <div style="display:flex; justify-content:space-between; align-items:center;"><span>• GLOVES</span> <span id="slipPpeGloves" style="border: 1px solid #0f172a; width: 14px; height: 14px; display:inline-flex; align-items:center; justify-content:center; font-weight:bold; font-size:10px;"></span></div>
+              </div>
+            </div>
+
+            <!-- Handwashing -->
+            <div style="border-top: 1px solid #0f172a; padding-top: 4px; margin-top: 6px;">
+              <div style="font-weight: 800; font-size: 10.5px; margin-bottom: 3px; text-align: center;">Hand washing</div>
+              <div style="display: flex; justify-content: space-around; font-size: 10.5px;">
+                <span>Yes <span id="slipHwYes" style="border: 1px solid #0f172a; width: 14px; height: 14px; display:inline-flex; align-items:center; justify-content:center; font-weight:bold; font-size:10px; margin-left: 3px;"></span></span>
+                <span>N/A <span id="slipHwNa" style="border: 1px solid #0f172a; width: 14px; height: 14px; display:inline-flex; align-items:center; justify-content:center; font-weight:bold; font-size:10px; margin-left: 3px;"></span></span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="slip-sig-box">
-          <div class="slip-sig-title">2. RECEIVED & EXECUTED BY</div>
-          <div class="slip-sig-space">
-            <span class="slip-sig-seal" id="sigReceiverSeal">Engineering In-Charge</span>
+        <!-- Middle: Details of repair + Rework/follow-up -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid #0f172a;">
+          <!-- Details of repair -->
+          <div style="border-right: 1px solid #0f172a; padding: 6px 10px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 3px; margin-bottom: 4px;">
+                <span style="font-weight: 800; font-size: 10.5px; text-transform: uppercase;">Details of repair (by E&M personnel)</span>
+                <span style="font-weight: 800; font-size: 10px; color: #475569;">Status:</span>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <div id="slipRepairDetailText" style="flex: 1; font-size: 10.5px; min-height: 48px; color: #0f172a; line-height: 1.35;"></div>
+                <div style="font-size: 9.5px; line-height: 1.5; min-width: 100px;">
+                  <div style="display:flex; justify-content:space-between;"><span>Done</span> <span id="slipStDone" style="border:1px solid #0f172a; width:12px; height:12px; display:inline-flex; align-items:center; justify-content:center; font-size:9px;"></span></div>
+                  <div style="display:flex; justify-content:space-between;"><span>Done with concern</span> <span id="slipStConcern" style="border:1px solid #0f172a; width:12px; height:12px; display:inline-flex; align-items:center; justify-content:center; font-size:9px;"></span></div>
+                  <div style="display:flex; justify-content:space-between;"><span>Pending</span> <span id="slipStPending" style="border:1px solid #0f172a; width:12px; height:12px; display:inline-flex; align-items:center; justify-content:center; font-size:9px;"></span></div>
+                  <div style="display:flex; justify-content:space-between;"><span>For pull out</span> <span id="slipStPullout" style="border:1px solid #0f172a; width:12px; height:12px; display:inline-flex; align-items:center; justify-content:center; font-size:9px;"></span></div>
+                  <div style="display:flex; justify-content:space-between;"><span>Rework</span> <span id="slipStRework" style="border:1px solid #0f172a; width:12px; height:12px; display:inline-flex; align-items:center; justify-content:center; font-size:9px;"></span></div>
+                </div>
+              </div>
+            </div>
+            <div style="font-size: 10px; font-weight: 700; margin-top: 4px; border-top: 1px dotted #cbd5e1; padding-top: 3px;">
+              Date completed: <span id="slipRepairDateCompleted" style="font-weight: 800; color: #1e3a8a;">________________</span>
+            </div>
           </div>
-          <div class="slip-sig-line">
-            <div class="slip-sig-name" id="sigReceiverName">--</div>
-            <div class="slip-sig-role">Engineering Personnel / Technician</div>
+
+          <!-- Rework / follow up repair details -->
+          <div style="padding: 6px 10px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 3px; margin-bottom: 4px;">
+                <span style="font-weight: 800; font-size: 10.5px; text-transform: uppercase;">Rework/ follow up repair details</span>
+                <span style="font-weight: 800; font-size: 10px; color: #475569;">Status:</span>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <div id="slipReworkDetailText" style="flex: 1; font-size: 10.5px; min-height: 48px; color: #0f172a; line-height: 1.35;"></div>
+                <div style="font-size: 9.5px; line-height: 1.5; min-width: 100px;">
+                  <div style="display:flex; justify-content:space-between;"><span>Done</span> <span id="slipRwDone" style="border:1px solid #0f172a; width:12px; height:12px; display:inline-flex; align-items:center; justify-content:center; font-size:9px;"></span></div>
+                  <div style="display:flex; justify-content:space-between;"><span>Done with concern</span> <span id="slipRwConcern" style="border:1px solid #0f172a; width:12px; height:12px; display:inline-flex; align-items:center; justify-content:center; font-size:9px;"></span></div>
+                  <div style="display:flex; justify-content:space-between;"><span>Pending</span> <span id="slipRwPending" style="border:1px solid #0f172a; width:12px; height:12px; display:inline-flex; align-items:center; justify-content:center; font-size:9px;"></span></div>
+                  <div style="display:flex; justify-content:space-between;"><span>For pull out</span> <span id="slipRwPullout" style="border:1px solid #0f172a; width:12px; height:12px; display:inline-flex; align-items:center; justify-content:center; font-size:9px;"></span></div>
+                  <div style="display:flex; justify-content:space-between;"><span>Rework</span> <span id="slipRwRework" style="border:1px solid #0f172a; width:12px; height:12px; display:inline-flex; align-items:center; justify-content:center; font-size:9px;"></span></div>
+                </div>
+              </div>
+            </div>
+            <div style="font-size: 10px; font-weight: 700; margin-top: 4px; border-top: 1px dotted #cbd5e1; padding-top: 3px;">
+              Date follow up: <span id="slipFollowUpDate" style="font-weight: 800; color: #1e3a8a;">________________</span> • Date completed: <span id="slipFollowUpCompleted" style="font-weight: 800; color: #1e3a8a;">________________</span>
+            </div>
           </div>
         </div>
 
-        <div class="slip-sig-box">
-          <div class="slip-sig-title">3. VERIFIED & APPROVED BY</div>
-          <div class="slip-sig-space">
-            <span class="slip-sig-seal">Official Controlled Copy</span>
+        <!-- Sanitation Handover Question -->
+        <div style="padding: 6px 10px; background: #f8fafc; border-bottom: 1px solid #0f172a; font-size: 10.5px; font-weight: 700; color: #0f172a;">
+          Was the equipment/machinery that was repaired or maintained cleaned and sanitized? 
+          <span style="margin-left: 10px;">
+            (<span id="slipSanitizedYes" style="font-weight:bold;"> </span>) YES &nbsp;&nbsp; 
+            (<span id="slipSanitizedNo" style="font-weight:bold;"> </span>) NO
+          </span>
+          <span style="font-weight: normal; font-style: italic; color: #64748b; margin-left: 6px;">(by process owner)</span>
+        </div>
+
+        <!-- Sanitation Details (Chemicals vs Specific Parts) -->
+        <div style="display: grid; grid-template-columns: 1fr 1.25fr; border-bottom: 1px solid #0f172a;">
+          <div style="border-right: 1px solid #0f172a; padding: 6px 10px; font-size: 10px;">
+            <div style="font-weight: 800; margin-bottom: 4px; text-transform: uppercase;">Cleaning chemicals used (by process owner)</div>
+            <div style="display: flex; flex-direction: column; gap: 3px;">
+              <div style="display:flex; justify-content:space-between;"><span>• LEADER 3%</span> <span id="slipChemLeader" style="border:1px solid #0f172a; width:13px; height:13px; display:inline-flex; align-items:center; justify-content:center; font-size:9px;"></span></div>
+              <div style="display:flex; justify-content:space-between;"><span>• TECHNO DET 1% - 3%</span> <span id="slipChemTechno" style="border:1px solid #0f172a; width:13px; height:13px; display:inline-flex; align-items:center; justify-content:center; font-size:9px;"></span></div>
+              <div style="display:flex; justify-content:space-between;"><span>• ALL FRESH 200 ppm</span> <span id="slipChemAllFresh" style="border:1px solid #0f172a; width:13px; height:13px; display:inline-flex; align-items:center; justify-content:center; font-size:9px;"></span></div>
+              <div style="display:flex; justify-content:space-between;"><span>• SODIUM HYPOCHLORITE 200ppm</span> <span id="slipChemSodium" style="border:1px solid #0f172a; width:13px; height:13px; display:inline-flex; align-items:center; justify-content:center; font-size:9px;"></span></div>
+            </div>
           </div>
-          <div class="slip-sig-line">
-            <div class="slip-sig-name">ENGR. HEAD / QA SUPERVISOR</div>
-            <div class="slip-sig-role">Engineering Head / Plant Management</div>
+
+          <div style="padding: 6px 10px; font-size: 10px;">
+            <div style="font-weight: 800; margin-bottom: 4px; text-transform: uppercase;">Specific equipment or parts that were cleaned and sanitized (by process owner)</div>
+            <div id="slipSanitizedPartsList" style="font-size: 10px; line-height: 1.6; color: #0f172a;">
+              <div>1. <span id="slipCleanPart1">________________________________</span></div>
+              <div>2. <span id="slipCleanPart2">________________________________</span></div>
+              <div>3. <span>________________________________</span></div>
+              <div>4. <span>________________________________</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Signatures & Verification (Performed, Verified, Accepted - As in physical form) -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; background: #ffffff;">
+          <div style="padding: 8px 12px; border-right: 1px solid #0f172a; text-align: center;">
+            <div style="font-size: 10.5px; margin-bottom: 22px; text-align: left;">Performed by: <b id="slipCrewPerformed">____________________</b></div>
+            <div style="font-size: 10.5px; font-weight: 800; border-top: 1px solid #0f172a; padding-top: 2px;">E&M Crew</div>
+          </div>
+          <div style="padding: 8px 12px; border-right: 1px solid #0f172a; text-align: center;">
+            <div style="font-size: 10.5px; margin-bottom: 22px; text-align: left;">Verified by: <b id="slipLeaderVerified">____________________</b></div>
+            <div style="font-size: 10.5px; font-weight: 800; border-top: 1px solid #0f172a; padding-top: 2px;">E&M Team Leader</div>
+          </div>
+          <div style="padding: 8px 12px; text-align: center;">
+            <div style="font-size: 10.5px; margin-bottom: 22px; text-align: left;">Accepted by: <b id="slipDeptAccepted">____________________</b></div>
+            <div style="font-size: 10.5px; font-weight: 800; border-top: 1px solid #0f172a; padding-top: 2px;">PLI/Dept. Team Leader</div>
           </div>
         </div>
       </div>
@@ -2697,6 +2932,7 @@ async function syncToCloud(showToast = false, replace = false) {
           actionTaken: j.actionTaken || '',
           materialsUsed: j.materialsUsed || '',
           remarks: j.remarks || '',
+          repairActivity: typeof j.repairActivity === 'object' ? JSON.stringify(j.repairActivity) : (j.repairActivity || ''),
           status: j.status || 'Pending',
           deletedBy: j.deletedBy || null,
           deletedAt: j.deletedAt || null,
@@ -3321,6 +3557,56 @@ window.editJob = id => {
     }
   }
 
+  // Populate Repair Activity fields in modal
+  let rep = {};
+  if (j.repairActivity) {
+    if (typeof j.repairActivity === 'object') {
+      rep = j.repairActivity;
+    } else if (typeof j.repairActivity === 'string') {
+      try { rep = JSON.parse(j.repairActivity); } catch(e) { rep = {}; }
+    }
+  }
+
+  if ($('mPpeBonet')) {
+    $('mPpeBonet').checked = !!rep.ppeBonet;
+    $('mPpeBoots').checked = !!rep.ppeBoots;
+    $('mPpeMask').checked = !!rep.ppeMask;
+    $('mPpeApron').checked = !!rep.ppeApron;
+    $('mPpeGown').checked = !!rep.ppeGown;
+    $('mPpeGloves').checked = !!rep.ppeGloves;
+    if (rep.handwashing === 'N/A') {
+      const r = document.querySelector('input[name="mHandwashing"][value="N/A"]');
+      if (r) r.checked = true;
+    } else {
+      const r = document.querySelector('input[name="mHandwashing"][value="Yes"]');
+      if (r) r.checked = true;
+    }
+
+    $('mRepairStatus').value = rep.repairStatus || (j.status === 'Done' ? 'Done' : 'Pending');
+    $('mRepairDateCompleted').value = rep.dateCompleted || '';
+    $('mReworkDetails').value = rep.reworkDetails || '';
+    $('mFollowUpDate').value = rep.followUpDate || '';
+    $('mFollowUpStatus').value = rep.followUpStatus || '';
+
+    if (rep.cleanedSanitized === 'No') {
+      const r = document.querySelector('input[name="mCleanedSanitized"][value="No"]');
+      if (r) r.checked = true;
+    } else {
+      const r = document.querySelector('input[name="mCleanedSanitized"][value="Yes"]');
+      if (r) r.checked = true;
+    }
+
+    $('mChemLeader').checked = !!rep.chemLeader;
+    $('mChemTechno').checked = !!rep.chemTechno;
+    $('mChemAllFresh').checked = !!rep.chemAllFresh;
+    $('mChemSodium').checked = !!rep.chemSodium;
+    $('mSanitizedParts').value = rep.sanitizedParts || '';
+
+    $('mCrewPerformed').value = rep.crewPerformed || j.receivedBy || '';
+    $('mLeaderVerified').value = rep.leaderVerified || '';
+    $('mDeptAccepted').value = rep.deptAccepted || j.requester || '';
+  }
+
   $('jobModal').classList.add('show');
 };
 
@@ -3422,6 +3708,33 @@ $('updateForm').addEventListener('submit', async e => {
   j.materialsUsed = $('materialsUsed').value.trim();
   j.remarks = $('remarks').value.trim();
 
+  // Save repair activity details
+  if ($('mRepairStatus')) {
+    j.repairActivity = {
+      ppeBonet: $('mPpeBonet').checked,
+      ppeBoots: $('mPpeBoots').checked,
+      ppeMask: $('mPpeMask').checked,
+      ppeApron: $('mPpeApron').checked,
+      ppeGown: $('mPpeGown').checked,
+      ppeGloves: $('mPpeGloves').checked,
+      handwashing: document.querySelector('input[name="mHandwashing"]:checked')?.value || 'Yes',
+      repairStatus: $('mRepairStatus').value,
+      dateCompleted: $('mRepairDateCompleted').value,
+      reworkDetails: $('mReworkDetails').value.trim(),
+      followUpDate: $('mFollowUpDate').value,
+      followUpStatus: $('mFollowUpStatus').value,
+      cleanedSanitized: document.querySelector('input[name="mCleanedSanitized"]:checked')?.value || 'Yes',
+      chemLeader: $('mChemLeader').checked,
+      chemTechno: $('mChemTechno').checked,
+      chemAllFresh: $('mChemAllFresh').checked,
+      chemSodium: $('mChemSodium').checked,
+      sanitizedParts: $('mSanitizedParts').value.trim(),
+      crewPerformed: $('mCrewPerformed').value.trim(),
+      leaderVerified: $('mLeaderVerified').value.trim(),
+      deptAccepted: $('mDeptAccepted').value.trim()
+    };
+  }
+
   await syncToCloud(true);
   closeModal();
   render();
@@ -3468,25 +3781,84 @@ window.openSlipModal = id => {
   $('slipMaterials').textContent = j.materialsUsed || 'None recorded';
   $('slipRemarks').textContent = j.remarks || 'None';
 
-  $('sigRequesterName').textContent = j.requester || 'REQUESTING PERSONNEL';
-  $('sigReceiverName').textContent = j.receivedBy || 'ENGINEERING IN-CHARGE';
-
-  if (j.status === 'Done') {
-    $('sigReceiverSeal').textContent = 'Work Completed';
-    $('sigReceiverSeal').style.background = '#dcfce7';
-    $('sigReceiverSeal').style.color = '#15803d';
-    $('sigReceiverSeal').style.borderColor = '#16a34a';
-  } else if (j.receivedBy) {
-    $('sigReceiverSeal').textContent = 'In-Progress / Received';
-    $('sigReceiverSeal').style.background = '#dbeafe';
-    $('sigReceiverSeal').style.color = '#1e40af';
-    $('sigReceiverSeal').style.borderColor = '#3b82f6';
-  } else {
-    $('sigReceiverSeal').textContent = 'Pending Receiving';
-    $('sigReceiverSeal').style.background = '#fef3c7';
-    $('sigReceiverSeal').style.color = '#92400e';
-    $('sigReceiverSeal').style.borderColor = '#d97706';
+  // Parse repairActivity safely
+  let rep = {};
+  if (j.repairActivity) {
+    if (typeof j.repairActivity === 'object') {
+      rep = j.repairActivity;
+    } else if (typeof j.repairActivity === 'string') {
+      try { rep = JSON.parse(j.repairActivity); } catch(e) { rep = {}; }
+    }
   }
+
+  // Tools & Materials
+  if ($('slipTool1')) $('slipTool1').textContent = rep.tool1 || (j.materialsUsed ? j.materialsUsed.split(',')[0] || '' : '');
+  if ($('slipTool2')) $('slipTool2').textContent = rep.tool2 || (j.materialsUsed ? j.materialsUsed.split(',')[1] || '' : '');
+  if ($('slipTool3')) $('slipTool3').textContent = rep.tool3 || (j.materialsUsed ? j.materialsUsed.split(',')[2] || '' : '');
+
+  // PPE's
+  if ($('slipPpeBonet')) $('slipPpeBonet').textContent = rep.ppeBonet ? '✓' : '';
+  if ($('slipPpeBoots')) $('slipPpeBoots').textContent = rep.ppeBoots ? '✓' : '';
+  if ($('slipPpeMask')) $('slipPpeMask').textContent = rep.ppeMask ? '✓' : '';
+  if ($('slipPpeApron')) $('slipPpeApron').textContent = rep.ppeApron ? '✓' : '';
+  if ($('slipPpeGown')) $('slipPpeGown').textContent = rep.ppeGown ? '✓' : '';
+  if ($('slipPpeGloves')) $('slipPpeGloves').textContent = rep.ppeGloves ? '✓' : '';
+
+  // Handwashing
+  if ($('slipHwYes')) $('slipHwYes').textContent = rep.handwashing !== 'N/A' ? '✓' : '';
+  if ($('slipHwNa')) $('slipHwNa').textContent = rep.handwashing === 'N/A' ? '✓' : '';
+
+  // Details of Repair & Status
+  if ($('slipRepairDetailText')) {
+    $('slipRepairDetailText').textContent = rep.repairDetails || j.actionTaken || (j.status === 'Done' ? 'Work completed and verified operational.' : '');
+  }
+  const rStatus = rep.repairStatus || (j.status === 'Done' ? 'Done' : (j.status === 'Ongoing' ? 'Pending' : ''));
+  if ($('slipStDone')) $('slipStDone').textContent = rStatus === 'Done' ? '✓' : '';
+  if ($('slipStConcern')) $('slipStConcern').textContent = rStatus === 'Done with concern' ? '✓' : '';
+  if ($('slipStPending')) $('slipStPending').textContent = rStatus === 'Pending' ? '✓' : '';
+  if ($('slipStPullout')) $('slipStPullout').textContent = rStatus === 'For pull out' ? '✓' : '';
+  if ($('slipStRework')) $('slipStRework').textContent = rStatus === 'Rework' ? '✓' : '';
+  if ($('slipRepairDateCompleted')) {
+    $('slipRepairDateCompleted').textContent = rep.dateCompleted || j.completedAt || (j.status === 'Done' ? (j.receivedAt || '') : '________________');
+  }
+
+  // Rework / Follow up
+  if ($('slipReworkDetailText')) $('slipReworkDetailText').textContent = rep.reworkDetails || '';
+  const rwStatus = rep.followUpStatus || '';
+  if ($('slipRwDone')) $('slipRwDone').textContent = rwStatus === 'Done' ? '✓' : '';
+  if ($('slipRwConcern')) $('slipRwConcern').textContent = rwStatus === 'Done with concern' ? '✓' : '';
+  if ($('slipRwPending')) $('slipRwPending').textContent = rwStatus === 'Pending' ? '✓' : '';
+  if ($('slipRwPullout')) $('slipRwPullout').textContent = rwStatus === 'For pull out' ? '✓' : '';
+  if ($('slipRwRework')) $('slipRwRework').textContent = rwStatus === 'Rework' ? '✓' : '';
+  if ($('slipFollowUpDate')) $('slipFollowUpDate').textContent = rep.followUpDate || '________________';
+  if ($('slipFollowUpCompleted')) $('slipFollowUpCompleted').textContent = rep.followUpCompleted || '________________';
+
+  // Sanitation Handover
+  if ($('slipSanitizedYes')) $('slipSanitizedYes').textContent = rep.cleanedSanitized !== 'No' ? '✓' : ' ';
+  if ($('slipSanitizedNo')) $('slipSanitizedNo').textContent = rep.cleanedSanitized === 'No' ? '✓' : ' ';
+
+  // Chemicals
+  if ($('slipChemLeader')) $('slipChemLeader').textContent = rep.chemLeader ? '✓' : '';
+  if ($('slipChemTechno')) $('slipChemTechno').textContent = rep.chemTechno ? '✓' : '';
+  if ($('slipChemAllFresh')) $('slipChemAllFresh').textContent = rep.chemAllFresh ? '✓' : '';
+  if ($('slipChemSodium')) $('slipChemSodium').textContent = rep.chemSodium ? '✓' : '';
+
+  // Cleaned parts
+  if ($('slipCleanPart1')) {
+    if (rep.sanitizedParts) {
+      const parts = rep.sanitizedParts.split(',');
+      $('slipCleanPart1').textContent = parts[0] || '________________________________';
+      $('slipCleanPart2').textContent = parts[1] || '________________________________';
+    } else {
+      $('slipCleanPart1').textContent = j.equipment ? (j.equipment + ' contact surfaces') : '________________________________';
+      $('slipCleanPart2').textContent = '________________________________';
+    }
+  }
+
+  // Signatures
+  if ($('slipCrewPerformed')) $('slipCrewPerformed').textContent = rep.crewPerformed || j.receivedBy || '____________________';
+  if ($('slipLeaderVerified')) $('slipLeaderVerified').textContent = rep.leaderVerified || (j.receivedBy ? (j.receivedBy + ' / In-Charge') : '____________________');
+  if ($('slipDeptAccepted')) $('slipDeptAccepted').textContent = rep.deptAccepted || j.requester || '____________________';
 
   $('slipPrintTimestamp').textContent = 'Generated: ' + new Date().toLocaleString('en-US', {
     month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true

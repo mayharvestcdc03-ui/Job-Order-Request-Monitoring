@@ -83,6 +83,7 @@ function mergeJobs(serverJobs, incomingJobs) {
         status: inc.status || existing.status || 'Pending',
         priority: inc.priority !== undefined ? inc.priority : (existing.priority || ''),
         problemCauses: inc.problemCauses !== undefined ? inc.problemCauses : (existing.problemCauses || ''),
+        repairActivity: inc.repairActivity !== undefined ? inc.repairActivity : (existing.repairActivity || ''),
         actionTaken: inc.actionTaken || existing.actionTaken || '',
         materialsUsed: inc.materialsUsed || existing.materialsUsed || '',
         remarks: inc.remarks || existing.remarks || '',
