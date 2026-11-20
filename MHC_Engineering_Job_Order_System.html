@@ -1592,6 +1592,42 @@ footer {
       </table>
       <div id="emptyState" class="empty">No job order requests found matching the filter criteria.</div>
     </div>
+
+    <!-- Deleted / Cancelled Requests Archive Section (Nakalagay sa Baba / Nakasort) -->
+    <div id="deletedJobsSection" style="margin-top: 36px; border: 1px solid #fecaca; background: #fffaf0; border-radius: 12px; padding: 20px 22px; box-shadow: 0 2px 8px rgba(220,38,38,0.06); display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+        <div>
+          <h3 style="margin: 0; color: #991b1b; display: flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 800;">
+            <span>🗑️</span> Deleted / Cancelled Job Orders Archive
+            <span id="deletedCountBadge" class="pill" style="background: #fee2e2; color: #991b1b; font-weight: 800; font-size: 12px; border: 1px solid #fca5a5;">0 Records</span>
+          </h3>
+          <p class="small" style="margin: 4px 0 0 0; color: #7f1d1d; line-height: 1.4;">
+            Ang lahat ng binurang Job Order ay ligtas na naka-archive dito sa ibaba (hindi na nakahalo sa itaas) kasama ang kumpletong Audit Trail kung sino ang nagbura, kailan, at dahilan. Maaari rin itong i-restore pabalik sa itaas anumang oras.
+          </p>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="background: #ffffff; border-radius: 8px; border: 1px solid #fee2e2;">
+        <table>
+          <thead>
+            <tr style="background: #fef2f2; color: #991b1b; border-bottom: 2px solid #fecaca;">
+              <th>Job Order No.</th>
+              <th>Department</th>
+              <th>Requested By</th>
+              <th>Area / Equipment</th>
+              <th>Details of Request</th>
+              <th>Date Requested</th>
+              <th style="color: #b91c1c;">Deleted By & Date</th>
+              <th style="color: #b91c1c;">Reason</th>
+              <th>Status</th>
+              <th class="no-print" style="text-align: center;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="deletedJobsBody"></tbody>
+        </table>
+        <div id="deletedEmptyState" class="empty" style="color: #991b1b; padding: 20px; text-align: center; font-weight: 600; display: none;">Walang deleted job orders.</div>
+      </div>
+    </div>
   </section>
 
   <!-- Tab 3: Department Dashboard -->
@@ -1640,6 +1676,33 @@ footer {
         <tbody id="departmentJobsBody"></tbody>
       </table>
       <div id="departmentEmpty" class="empty">Please select a department above to view its requests.</div>
+    </div>
+
+    <!-- Department Deleted Requests Archive -->
+    <div id="deptDeletedSection" style="margin-top: 32px; border: 1px solid #fecaca; background: #fffaf0; border-radius: 12px; padding: 18px 20px; display: none;">
+      <h3 style="margin: 0 0 6px 0; color: #991b1b; display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 800;">
+        <span>🗑️</span> Deleted Requests Archive for this Department
+        <span id="deptDeletedCountBadge" class="pill" style="background: #fee2e2; color: #991b1b; font-weight: 800; font-size: 11px;">0 Records</span>
+      </h3>
+      <p class="small" style="margin: 0 0 12px 0; color: #7f1d1d;">Ang mga kinansela o binurang job order para sa department na ito ay nakahiwalay dito sa ibaba.</p>
+      <div class="table-wrap" style="background: #ffffff; border-radius: 8px; border: 1px solid #fee2e2;">
+        <table>
+          <thead>
+            <tr style="background: #fef2f2; color: #991b1b;">
+              <th>Job Order No.</th>
+              <th>Requested By</th>
+              <th>Area / Equipment</th>
+              <th>Details of Request</th>
+              <th>Date Requested</th>
+              <th style="color: #b91c1c;">Deleted By & Date</th>
+              <th style="color: #b91c1c;">Reason</th>
+              <th>Status</th>
+              <th class="no-print" style="text-align: center;">Slip</th>
+            </tr>
+          </thead>
+          <tbody id="deptDeletedJobsBody"></tbody>
+        </table>
+      </div>
     </div>
   </section>
 </main>
@@ -2949,22 +3012,30 @@ function renderDepartmentDashboard() {
   indicator.innerHTML = '<span class="dept-unlocked-badge">🔓 Verified & Unlocked</span>';
 
   const own = jobs.filter(j => j.department === dept);
+  const activeOwn = own.filter(j => j.status !== 'Cancelled' && !j.deletedBy);
+  const deletedOwn = own.filter(j => j.status === 'Cancelled' || !!j.deletedBy);
+
+  // Sort deleted for this department: newest deleted first
+  deletedOwn.sort((a, b) => {
+    const tA = new Date(a.deletedAt || a.requestedAt || 0).getTime() || 0;
+    const tB = new Date(b.deletedAt || b.requestedAt || 0).getTime() || 0;
+    if (tB !== tA) return tB - tA;
+    return (b.jobNo || '').localeCompare(a.jobNo || '');
+  });
+
   summary.hidden = false;
   $('deptChart').innerHTML = pieCard(dept, own);
   $('deptChart').hidden = false;
-  $('departmentHint').textContent = 'Showing ' + own.length + ' request(s) submitted by ' + dept + '.';
-  $('deptTotal').textContent = own.length;
-  $('deptPending').textContent = own.filter(j => j.status === 'Pending').length;
-  $('deptOngoing').textContent = own.filter(j => j.status === 'Ongoing').length;
-  $('deptDone').textContent = own.filter(j => j.status === 'Done').length;
+  $('departmentHint').textContent = 'Showing ' + activeOwn.length + ' active request(s) submitted by ' + dept + '.';
+  $('deptTotal').textContent = activeOwn.length;
+  $('deptPending').textContent = activeOwn.filter(j => j.status === 'Pending').length;
+  $('deptOngoing').textContent = activeOwn.filter(j => j.status === 'Ongoing').length;
+  $('deptDone').textContent = activeOwn.filter(j => j.status === 'Done').length;
 
-  $('departmentJobsBody').innerHTML = own.map(j => `
-    <tr style="${(j.status === 'Cancelled' || j.deletedBy) ? 'background-color: #fff1f2; opacity: 0.88;' : ''}">
+  $('departmentJobsBody').innerHTML = activeOwn.map(j => `
+    <tr>
       <td><b style="color: #1e3a8a;">${esc(j.jobNo)}</b></td>
-      <td>
-        ${esc(j.requester)}
-        ${j.deletedBy ? `<div class="small" style="color: #b91c1c; font-weight: 700; margin-top: 4px;">🗑️ Deleted by: ${esc(j.deletedBy)} (${esc(j.deletedAt || '')})${j.deletionReason ? '<br><i>Reason: ' + esc(j.deletionReason) + '</i>' : ''}</div>` : ''}
-      </td>
+      <td>${esc(j.requester)}</td>
       <td><b>${esc(j.area)}</b>${j.equipment ? '<br><span class="small">🏷️ ' + esc(j.equipment) + '</span>' : ''}</td>
       <td>${esc(j.details)}</td>
       <td>${esc(j.requestedAt)}</td>
@@ -2979,8 +3050,38 @@ function renderDepartmentDashboard() {
     </tr>
   `).join('');
 
-  $('departmentEmpty').style.display = own.length ? 'none' : 'block';
-  $('departmentEmpty').textContent = 'No requests submitted by ' + dept + ' yet.';
+  $('departmentEmpty').style.display = activeOwn.length ? 'none' : 'block';
+  $('departmentEmpty').textContent = 'No active requests submitted by ' + dept + ' yet.';
+
+  // Department Deleted Section at the bottom
+  if ($('deptDeletedSection') && $('deptDeletedJobsBody')) {
+    if (deletedOwn.length > 0) {
+      $('deptDeletedSection').style.display = 'block';
+      $('deptDeletedCountBadge').textContent = `${deletedOwn.length} Record${deletedOwn.length > 1 ? 's' : ''}`;
+      $('deptDeletedJobsBody').innerHTML = deletedOwn.map(j => `
+        <tr style="background-color: #fff1f2;">
+          <td><b style="color: #991b1b;">${esc(j.jobNo)}</b></td>
+          <td>${esc(j.requester)}</td>
+          <td><b>${esc(j.area)}</b>${j.equipment ? '<br><span class="small">🏷️ ' + esc(j.equipment) + '</span>' : ''}</td>
+          <td>${esc(j.details)}</td>
+          <td>${esc(j.requestedAt)}</td>
+          <td style="color: #b91c1c; font-weight: 600;">
+            <div>👤 ${esc(j.deletedBy || 'System')}</div>
+            <div class="small" style="color: #7f1d1d;">📅 ${esc(j.deletedAt || '--')}</div>
+          </td>
+          <td style="color: #991b1b; font-size: 13px;">${j.deletionReason ? esc(j.deletionReason) : '<span style="color:#94a3b8;font-style:italic;">None</span>'}</td>
+          <td><span class="pill status-cancelled" style="background:#fee2e2; color:#b91c1c; font-weight:700;">🚫 Deleted</span></td>
+          <td class="no-print" style="text-align: center;">
+            <button class="secondary sm" onclick="openSlipModal('${j.id}')">
+              <span>📄</span> Slip
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    } else {
+      $('deptDeletedSection').style.display = 'none';
+    }
+  }
 }
 
 // Main Engineering Dashboard Render
@@ -2990,12 +3091,14 @@ function render() {
   const priority = $('filterPriority').value;
   const q = $('searchText').value.toLowerCase().trim();
 
-  $('totalCount').textContent = jobs.length;
-  $('newCount').textContent = jobs.filter(j => (!j.receivedBy || j.status === 'Pending') && j.status !== 'Cancelled' && !j.deletedBy).length;
-  $('ongoingCount').textContent = jobs.filter(j => j.status === 'Ongoing' && !j.deletedBy).length;
-  $('doneCount').textContent = jobs.filter(j => j.status === 'Done' && !j.deletedBy).length;
+  // Active records counts for top stats cards
+  const allActive = jobs.filter(j => j.status !== 'Cancelled' && !j.deletedBy);
+  $('totalCount').textContent = allActive.length;
+  $('newCount').textContent = allActive.filter(j => (!j.receivedBy || j.status === 'Pending')).length;
+  $('ongoingCount').textContent = allActive.filter(j => j.status === 'Ongoing').length;
+  $('doneCount').textContent = allActive.filter(j => j.status === 'Done').length;
 
-  const filtered = jobs.filter(j => {
+  const matchesFilter = j => {
     let pMatch = true;
     if (priority) {
       const pVal = String(j.priority || '');
@@ -3010,18 +3113,20 @@ function render() {
            (!status || j.status === status) &&
            pMatch &&
            (!q || [j.jobNo, j.department, j.requester, j.area, j.equipment, j.details, j.receivedBy, j.actionTaken, j.priority, j.deletedBy, j.deletionReason].join(' ').toLowerCase().includes(q));
-  });
+  };
 
-  $('jobsBody').innerHTML = filtered.map(j => `
-    <tr style="${(j.status === 'Cancelled' || j.deletedBy) ? 'background-color: #fff1f2; opacity: 0.90;' : ''}">
+  const filtered = jobs.filter(matchesFilter);
+
+  // 1. ACTIVE JOBS ONLY for the main table (Deleted are completely removed from here!)
+  const activeJobs = filtered.filter(j => j.status !== 'Cancelled' && !j.deletedBy);
+
+  $('jobsBody').innerHTML = activeJobs.map(j => `
+    <tr>
       <td>
         <b style="color: #1e3a8a;">${esc(j.jobNo)}</b>
       </td>
       <td><span class="pill" style="font-weight: 700;">${esc(j.department)}</span></td>
-      <td>
-        ${esc(j.requester)}
-        ${j.deletedBy ? `<div class="small" style="color: #b91c1c; font-weight: 700; margin-top: 4px;">🗑️ Deleted by: ${esc(j.deletedBy)} (${esc(j.deletedAt || '')})${j.deletionReason ? '<br><i>Reason: ' + esc(j.deletionReason) + '</i>' : ''}</div>` : ''}
-      </td>
+      <td>${esc(j.requester)}</td>
       <td>
         <b>${esc(j.area)}</b>
         ${j.equipment ? '<br><span class="small" style="color:#0284c7;">🏷️ ' + esc(j.equipment) + '</span>' : ''}
@@ -3040,23 +3145,89 @@ function render() {
         <button class="secondary sm" onclick="openSlipModal('${j.id}')" title="Print or Download PDF Slip">
           <span>📄</span> Slip
         </button>
-        ${(j.status === 'Cancelled' || j.deletedBy) ? `
-          <button class="secondary sm" onclick="restoreJob('${j.id}')" title="Restore this record" style="color: #047857; border-color: #a7f3d0; background: #ecfdf5;">
-            <span>↩️</span> Restore
-          </button>
-        ` : `
-          <button class="secondary sm" onclick="editJob('${j.id}')" title="Update status and receiving personnel">
-            <span>✏️</span> Edit
-          </button>
-          <button class="danger sm" onclick="deleteJob('${j.id}')" title="Mark as Deleted (Recorded in Audit Trail)">
-            <span>🗑️</span>
-          </button>
-        `}
+        <button class="secondary sm" onclick="editJob('${j.id}')" title="Update status and receiving personnel">
+          <span>✏️</span> Edit
+        </button>
+        <button class="danger sm" onclick="deleteJob('${j.id}')" title="Mark as Deleted (Recorded in Audit Trail)">
+          <span>🗑️</span>
+        </button>
       </td>
     </tr>
   `).join('');
 
-  $('emptyState').style.display = filtered.length ? 'none' : 'block';
+  $('emptyState').style.display = activeJobs.length ? 'none' : 'block';
+
+  // 2. DELETED JOBS SECTION AT THE BOTTOM (All deleted sorted!)
+  const deletedJobs = jobs.filter(j => (j.status === 'Cancelled' || !!j.deletedBy) &&
+    (!dept || j.department === dept) &&
+    (!status || status === 'Cancelled' || j.status === status) &&
+    (!q || [j.jobNo, j.department, j.requester, j.area, j.equipment, j.details, j.receivedBy, j.actionTaken, j.priority, j.deletedBy, j.deletionReason].join(' ').toLowerCase().includes(q))
+  );
+
+  // Sort deleted: Newest deleted first!
+  const parseTime = d => {
+    if (!d) return 0;
+    const t = new Date(d).getTime();
+    return isNaN(t) ? 0 : t;
+  };
+  deletedJobs.sort((a, b) => {
+    const tA = parseTime(a.deletedAt || a.requestedAt);
+    const tB = parseTime(b.deletedAt || b.requestedAt);
+    if (tB !== tA) return tB - tA;
+    return (b.jobNo || '').localeCompare(a.jobNo || '');
+  });
+
+  if ($('deletedJobsBody')) {
+    if (deletedJobs.length > 0) {
+      if ($('deletedJobsSection')) $('deletedJobsSection').style.display = 'block';
+      $('deletedCountBadge').textContent = `${deletedJobs.length} Record${deletedJobs.length > 1 ? 's' : ''}`;
+      $('deletedEmptyState').style.display = 'none';
+
+      $('deletedJobsBody').innerHTML = deletedJobs.map(j => `
+        <tr style="background-color: #fff1f2;">
+          <td><b style="color: #991b1b;">${esc(j.jobNo)}</b></td>
+          <td><span class="pill" style="font-weight: 700;">${esc(j.department)}</span></td>
+          <td>${esc(j.requester)}</td>
+          <td>
+            <b>${esc(j.area)}</b>
+            ${j.equipment ? '<br><span class="small" style="color:#0284c7;">🏷️ ' + esc(j.equipment) + '</span>' : ''}
+          </td>
+          <td style="max-width: 250px; word-break: break-word;">
+            ${esc(j.details)}
+            ${j.actionTaken ? '<br><span class="small" style="color:#059669;"><b>Action:</b> ' + esc(j.actionTaken) + '</span>' : ''}
+          </td>
+          <td style="white-space: nowrap;">${esc(j.requestedAt)}</td>
+          <td style="white-space: nowrap; color: #b91c1c; font-weight: 600;">
+            <div>👤 ${esc(j.deletedBy || 'System')}</div>
+            <div class="small" style="color: #7f1d1d;">📅 ${esc(j.deletedAt || '--')}</div>
+          </td>
+          <td style="color: #991b1b; font-size: 13px; max-width: 200px; word-break: break-word;">
+            ${j.deletionReason ? esc(j.deletionReason) : '<span style="color: #94a3b8; font-style: italic;">No reason provided</span>'}
+          </td>
+          <td>
+            <span class="pill status-cancelled" style="background: #fee2e2; color: #b91c1c; font-weight: 700; border: 1px solid #fca5a5;">🚫 Deleted</span>
+          </td>
+          <td class="no-print" style="white-space: nowrap; text-align: center;">
+            <button class="secondary sm" onclick="openSlipModal('${j.id}')" title="Print or Download PDF Slip">
+              <span>📄</span> Slip
+            </button>
+            <button class="secondary sm" onclick="restoreJob('${j.id}')" title="I-restore pabalik sa active list" style="color: #047857; border-color: #a7f3d0; background: #ecfdf5; font-weight: 700;">
+              <span>↩️</span> Restore
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    } else {
+      $('deletedCountBadge').textContent = '0 Records';
+      $('deletedJobsBody').innerHTML = '';
+      $('deletedEmptyState').style.display = 'block';
+      const totalAnyDeleted = jobs.filter(j => j.status === 'Cancelled' || !!j.deletedBy).length;
+      if ($('deletedJobsSection')) {
+        $('deletedJobsSection').style.display = totalAnyDeleted > 0 ? 'block' : 'none';
+      }
+    }
+  }
+
   renderCharts();
 }
 
@@ -3113,7 +3284,7 @@ window.deleteJob = async id => {
   if ($('departmentDashboard') && !$('departmentDashboard').hidden) {
     renderDepartmentDashboard();
   }
-  toast(`✓ Nai-tala: Minarkahang Deleted ni ${j.deletedBy}.`);
+  toast(`✓ Nai-tala: Minarkahang Deleted ni ${j.deletedBy} at inilipat sa ibabang Archive.`);
 };
 
 window.restoreJob = async id => {
@@ -3129,7 +3300,7 @@ window.restoreJob = async id => {
     if ($('departmentDashboard') && !$('departmentDashboard').hidden) {
       renderDepartmentDashboard();
     }
-    toast(`✓ Naibalik sa Active ang Job Order ${j.jobNo}.`);
+    toast(`✓ Naibalik: Active na ulit ang Job Order ${j.jobNo} sa itaas.`);
   }
 };
 
@@ -3292,8 +3463,8 @@ $('btnDownloadSlipPdf').addEventListener('click', () => {
 
 // Export CSV
 $('exportCsv').addEventListener('click', () => {
-  const cols = ['jobNo', 'department', 'requester', 'area', 'equipment', 'details', 'requestedAt', 'receivedBy', 'receivedAt', 'targetDate', 'priority', 'status', 'actionTaken', 'materialsUsed', 'remarks'];
-  const headers = ['Job Order No', 'Department', 'Requested By', 'Area', 'Equipment', 'Details of Request', 'Date Requested', 'Received By', 'Date Received', 'Target Date', 'Priority', 'Status', 'Action Taken', 'Materials Used', 'Remarks'];
+  const cols = ['jobNo', 'department', 'requester', 'area', 'equipment', 'details', 'requestedAt', 'receivedBy', 'receivedAt', 'targetDate', 'priority', 'status', 'actionTaken', 'materialsUsed', 'remarks', 'deletedBy', 'deletedAt', 'deletionReason'];
+  const headers = ['Job Order No', 'Department', 'Requested By', 'Area', 'Equipment', 'Details of Request', 'Date Requested', 'Received By', 'Date Received', 'Target Date', 'Priority', 'Status', 'Action Taken', 'Materials Used', 'Remarks', 'Deleted By', 'Date Deleted', 'Deletion Reason'];
   const csv = [
     headers.join(','),
     ...jobs.map(j => cols.map(k => '"' + String(j[k] ?? '').replace(/"/g, '""') + '"').join(','))
